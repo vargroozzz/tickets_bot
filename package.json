@@ -1,0 +1,17 @@
+{
+  "name": "tickets_site",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js",
+    "dev": "npm run build && npm run start",
+    "build": "tsc"
+  },
+  "engines": {
+    "node": "12.3.1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC"
+}
