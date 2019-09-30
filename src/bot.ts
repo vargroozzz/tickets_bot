@@ -36,7 +36,7 @@ const bot: TelegramBot = new TelegramBot(TOKEN, options);
 const pool: Pool = new Pool(db);
 
 bot.setWebHook(`${URL}/bot${TOKEN}`);
-
+console.log(`${URL}/bot${TOKEN}`);
 bot.onText(/^\/start$/, msg => {
   if (msg.from.id == msg.chat.id) {
     pool.connect().then(client =>
