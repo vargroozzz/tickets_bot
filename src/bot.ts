@@ -2,7 +2,7 @@ process.env["NTBA_FIX_319"] = "1";
 import * as TelegramBot from "node-telegram-bot-api";
 import { Pool } from "pg";
 
-const TOKEN: string = process.env.TELEGRAM_BOT_TOKEN_PROD;
+const TOKEN: string = process.env.TELEGRAM_BOT_TOKEN_TICKETS;
 const PORT = process.env.PORT || 443;
 const URL: string = "https://";
 
