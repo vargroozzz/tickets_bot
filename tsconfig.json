@@ -1,11 +1,12 @@
 {
-    "compileOnSave": true,
-    "compilerOptions": {
-      "target": "es5",
-      "removeComments": true,
-      "sourceMap": false
-    },
-    "declaration": true,
-    "exclude": ["node_modules"]
-  }
-  
+  "compileOnSave": true,
+  "compilerOptions": {
+    "target": "es5",
+    "removeComments": true,
+    "outDir": "app",
+    "sourceMap": false
+  },
+  "declaration": true,
+  "include": ["src/*"],
+  "exclude": ["node_modules"]
+}

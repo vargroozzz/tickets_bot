@@ -2,16 +2,36 @@
   "name": "tickets_site",
   "version": "1.0.0",
   "description": "",
-  "main": "index.js",
+  "main": "app/bot.js",
   "scripts": {
-    "start": "node index.js",
+    "start": "node app/bot.js",
     "dev": "npm run build && npm run start",
     "build": "tsc"
   },
   "engines": {
     "node": "12.3.1"
   },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/vargroozzz/tickets_site"
+  },
   "keywords": [],
-  "author": "",
-  "license": "ISC"
+  "author": "vargroozzz",
+  "license": "MIT",
+  "dependencies": {
+    "@types/node": "^12.6.8",
+    "body-parser": "^1.19.0",
+    "bufferutil": "^4.0.1",
+    "express": "^4.17.1",
+    "node-telegram-bot-api": "^0.30.0",
+    "pg": "^7.12.1",
+    "typescript": "^3.5.3",
+    "utf-8-validate": "^5.0.2",
+    "ws": "^7.1.1"
+  },
+  "devDependencies": {
+    "@babel/cli": "^7.4.4",
+    "@babel/core": "^7.4.5",
+    "tslint": "^5.18.0"
+  }
 }
