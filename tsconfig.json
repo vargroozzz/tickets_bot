@@ -1,12 +1,13 @@
 {
   "compileOnSave": true,
   "compilerOptions": {
-    "target": "es5",
+    "target": "es2016",
+    "moduleResolution": "node",
     "removeComments": true,
     "outDir": "app",
     "sourceMap": false
   },
   "declaration": true,
-  "include": ["src/*"],
+  "include": ["src/bot.ts"],
   "exclude": ["node_modules"]
 }
