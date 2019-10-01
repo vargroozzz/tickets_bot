@@ -90,7 +90,7 @@ bot.onText(/^\/sql (.+)$/, (msg, match) => {
     "studid INT UNIQUE," +
     "tgid INT UNIQUE," +
     "course TEXT ," +
-    "group TEXT ," +
+    "group_num TEXT ," +
     "name_surname TEXT ," +
     "PRIMARY KEY ( studid ));" +
     "\n" +
@@ -98,7 +98,7 @@ bot.onText(/^\/sql (.+)$/, (msg, match) => {
     "studid INT UNIQUE," +
     "tgid INT UNIQUE," +
     "course TEXT ," +
-    "group TEXT ," +
+    "group_num TEXT ," +
     "name_surname TEXT ," +
     "PRIMARY KEY ( studid ));";
   pool.connect().then(client =>
