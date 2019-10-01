@@ -106,9 +106,11 @@ bot.onText(/^\/sql (.+)$/, (msg, match) => {
       .query(tables_init)
       .then(res => {
         client.release();
+        console.log("table was succesfully inited");
       })
       .catch(e => {
         client.release();
+        console.log("error by trying to init table");
         console.log(e.stack);
       })
   );
