@@ -1,10 +1,10 @@
 process.env["NTBA_FIX_319"] = "1";
-import * as TelegramBot from "node-telegram-bot-api";
-import { Pool } from "pg";
+const TelegramBot = require("node-telegram-bot-api");
+const Pool = require("pg").Pool;
 
 const TOKEN: string = process.env.TELEGRAM_BOT_TOKEN_TICKETS;
 const PORT = process.env.PORT || 443;
-const URL: string = "https://knu-ticket-bot.herokuapp.com";
+const HOST_URL: string = "https://knu-ticket-bot.herokuapp.com";
 
 const options = {
   webHook: {
@@ -31,12 +31,12 @@ const reg_btns = {
   }
 };
 
-const bot: TelegramBot = new TelegramBot(TOKEN, options);
+const bot = new TelegramBot(TOKEN, options);
 
-const pool: Pool = new Pool(db);
+const pool = new Pool(db);
 
-bot.setWebHook(`${URL}/bot${TOKEN}`);
-console.log(`${URL}/bot${TOKEN}`);
+bot.setWebHook(`${HOST_URL}/bot${TOKEN}`);
+
 bot.onText(/^\/start$/, msg => {
   if (msg.from.id == msg.chat.id) {
     pool.connect().then(client =>
