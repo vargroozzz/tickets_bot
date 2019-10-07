@@ -19,15 +19,18 @@ const db = {
 
 const start_btns = {
   reply_markup: {
-    keyboard: [["Заказать проездной", "Изменить свои данные"]],
-    resize_keyboard: true
+    inline_keyboard: [
+      [
+        { text: "Заказать проездной", callback_data: "buy_ticket" },
+        { text: "Изменить свои данные", callback_data: "change_data" }
+      ]
+    ]
   }
 };
 
 const reg_btns = {
   reply_markup: {
-    keyboard: [["Зарегистрироваться"]],
-    resize_keyboard: true
+    inline_keyboard: [[{ text: "Зарегистрироваться", callback_data: "reg" }]]
   }
 };
 
@@ -84,22 +87,71 @@ bot.onText(/^\/sql (.+)$/, (msg, match) => {
   }
 });
 
+bot.on("callback_query", cb => {
+  const data = cb.data;
+  switch (data) {
+    case "reg":
+      bot.sendMessage(
+        cb.from.id,
+        "Введите информацию о себе в формате:\nИмя и фамилия: *Ваши имя и фамилия*\nФакультет: *Ваш факультет*\nКурс: *Ваш курс*\nГруппа: *Ваша группа*\nНомер студенческого билета: *Ваш номер студенческого билета*"
+      );
+      bot.onText(
+        /Имя и фамилия: ([A-Z][a-z]+ [A-Z][a-z]+)\nФакультет: ([A-Z][a-z]+ [A-Z][a-z ]+)\nКурс: (\d)\nГруппа: ([A-Z]-\d\d)\nНомер студенческого билета: (\d+)/g,
+        (msg, match) => {
+          pool.connect().then(client =>
+            client
+              .query(
+                reg(match[1])(match[2])(match[3])(match[4])(match[5])(
+                  msg.from.id
+                )
+              )
+              .then(res => {
+                client.release();
+                bot.onText(
+                  /Имя и фамилия: ([A-Z][a-z]+ [A-Z][a-z]+)\nФакультет: ([A-Z][a-z]+ [A-Z][a-z ]+)\nКурс: (\d)\nГруппа: ([A-Z]-\d\d)\nНомер студенческого билета: (\d+)/g,
+                  msg => {
+                    bot.sendMessage(msg.from.id, "Вы уже зарегистрированы");
+                  }
+                );
+              })
+              .catch(e => {
+                client.release();
+                console.log(e.stack);
+              })
+          );
+        }
+      );
+      break;
+    case "buy_ticket":
+      break;
+    case "change_data":
+      break;
+    default:
+      console.log(data);
+      break;
+  }
+});
+
+const reg = fio => faculty => course => group_num => studid => user =>
+  `INSERT INTO students VALUES (${studid}, ${user.id}, ${fio}, ${faculty}, ${course}, ${group_num})`;
+
 {
   const tables_init: string =
     "CREATE TABLE IF NOT EXISTS students (" +
     "studid INT UNIQUE," +
     "tgid INT UNIQUE," +
+    "name_surname TEXT ," +
+    "faculty TEXT ," +
     "course TEXT ," +
     "group_num TEXT ," +
-    "name_surname TEXT ," +
     "PRIMARY KEY ( studid ));" +
     "\n" +
     "CREATE TABLE IF NOT EXISTS proforgs (" +
     "studid INT UNIQUE," +
     "tgid INT UNIQUE," +
+    "name_surname TEXT ," +
     "course TEXT ," +
     "group_num TEXT ," +
-    "name_surname TEXT ," +
     "PRIMARY KEY ( studid ));";
   pool.connect().then(client =>
     client
