@@ -78,6 +78,40 @@ bot.onText(/^\/start$/, msg => {
   }
 });
 
+bot.onText(
+  /Имя и фамилия: ([A-Z][a-z]+ [A-Z][a-z]+)\nФакультет: ([A-Z][a-z]+ [A-Z][a-z ]+)\nКурс: (\d)\nГруппа: ([A-Z]-\d\d)\nНомер студенческого билета: (\d+)/g,
+  (msg, match) => {
+    pool.connect().then(client =>
+      client
+        .query(`SELECT * FROM students WHERE tgid="${msg.from.id}"`)
+        .then(res => {
+          client.release();
+          if (res.rowCount !== 0) {
+          }
+        })
+    );
+    pool.connect().then(client =>
+      client
+        .query(
+          reg(match[1])(match[2])(match[3])(match[4])(match[5])(msg.from.id)
+        )
+        .then(res => {
+          client.release();
+          bot.onText(
+            /Имя и фамилия: ([A-Z][a-z]+ [A-Z][a-z]+)\nФакультет: ([A-Z][a-z]+ [A-Z][a-z ]+)\nКурс: (\d)\nГруппа: ([A-Z]-\d\d)\nНомер студенческого билета: (\d+)/g,
+            msg => {
+              bot.sendMessage(msg.from.id, "Вы уже зарегистрированы");
+            }
+          );
+        })
+        .catch(e => {
+          client.release();
+          console.log(e.stack);
+        })
+    );
+  }
+);
+
 bot.onText(/^\/sql (.+)$/, (msg, match) => {
   if (msg.from.id == 468074317) {
     pool.connect().then(client =>
@@ -102,6 +136,7 @@ bot.on("callback_query", cb => {
   const data = cb.data;
   switch (data) {
     case "reg":
+<<<<<<< HEAD
       bot.sendMessage(cb.from.id, "Ваши имя и фамилия:");
       users[0]
       //"Введите информацию о себе в формате:\nИмя и фамилия: *Ваши имя и фамилия*\nФакультет: *Ваш факультет*\nКурс: *Ваш курс*\nГруппа: *Ваша группа*\nНомер студенческого билета: *Ваш номер студенческого билета*"
@@ -130,6 +165,11 @@ bot.on("callback_query", cb => {
               })
           );
         }
+=======
+      bot.sendMessage(
+        cb.from.id,
+        "Введите информацию о себе в формате:\nИмя и фамилия: *Ваши имя и фамилия*\nФакультет: *Ваш факультет*\nКурс: *Ваш курс*\nГруппа: *Ваша группа*\nНомер студенческого билета: *Ваш номер студенческого билета*"
+>>>>>>> cc09620b2e99ca3e0d2081c79158f85c4acaf769
       );
       break;
     case "buy_ticket":
