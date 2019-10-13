@@ -6,6 +6,17 @@ const TOKEN: string = process.env.TELEGRAM_BOT_TOKEN_TICKETS;
 const PORT = process.env.PORT || 443;
 const HOST_URL: string = "https://knu-ticket-bot.herokuapp.com";
 
+interface User {
+  tg_id: number | null,
+  fio: string | null,
+  faculty: string | null,
+  course: number | null,
+  group_num: string | null,
+  stud_id: number | null
+}
+
+const users: Set<User> = new Set();
+
 const options = {
   webHook: {
     port: PORT
@@ -49,15 +60,15 @@ bot.onText(/^\/start$/, msg => {
           client.release();
           res.rows != 0
             ? bot.sendMessage(
-                msg.from.id,
-                `Здравствуй, ${res.rows[0].name}`,
-                start_btns
-              )
+              msg.from.id,
+              `Здравствуй, ${res.rows[0].name}`,
+              start_btns
+            )
             : bot.sendMessage(
-                msg.from.id,
-                `Здравствуй, новый пользователь!`,
-                reg_btns
-              );
+              msg.from.id,
+              `Здравствуй, новый пользователь!`,
+              reg_btns
+            );
         })
         .catch(e => {
           client.release();
@@ -91,10 +102,9 @@ bot.on("callback_query", cb => {
   const data = cb.data;
   switch (data) {
     case "reg":
-      bot.sendMessage(
-        cb.from.id,
-        "Введите информацию о себе в формате:\nИмя и фамилия: *Ваши имя и фамилия*\nФакультет: *Ваш факультет*\nКурс: *Ваш курс*\nГруппа: *Ваша группа*\nНомер студенческого билета: *Ваш номер студенческого билета*"
-      );
+      bot.sendMessage(cb.from.id, "Ваши имя и фамилия:");
+      users[0]
+      //"Введите информацию о себе в формате:\nИмя и фамилия: *Ваши имя и фамилия*\nФакультет: *Ваш факультет*\nКурс: *Ваш курс*\nГруппа: *Ваша группа*\nНомер студенческого билета: *Ваш номер студенческого билета*"
       bot.onText(
         /Имя и фамилия: ([A-Z][a-z]+ [A-Z][a-z]+)\nФакультет: ([A-Z][a-z]+ [A-Z][a-z ]+)\nКурс: (\d)\nГруппа: ([A-Z]-\d\d)\nНомер студенческого билета: (\d+)/g,
         (msg, match) => {
