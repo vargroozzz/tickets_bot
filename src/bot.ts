@@ -7,12 +7,12 @@ const PORT = process.env.PORT || 443;
 const HOST_URL: string = "https://knu-ticket-bot.herokuapp.com";
 
 interface User {
-  tg_id: number | null,
-  fio: string | null,
-  faculty: string | null,
-  course: number | null,
-  group_num: string | null,
-  stud_id: number | null
+  tg_id: number | null;
+  fio: string | null;
+  faculty: string | null;
+  course: number | null;
+  group_num: string | null;
+  stud_id: number | null;
 }
 
 const users: Set<User> = new Set();
@@ -60,15 +60,15 @@ bot.onText(/^\/start$/, msg => {
           client.release();
           res.rows != 0
             ? bot.sendMessage(
-              msg.from.id,
-              `Здравствуй, ${res.rows[0].name}`,
-              start_btns
-            )
+                msg.from.id,
+                `Здравствуй, ${res.rows[0].name}`,
+                start_btns
+              )
             : bot.sendMessage(
-              msg.from.id,
-              `Здравствуй, новый пользователь!`,
-              reg_btns
-            );
+                msg.from.id,
+                `Здравствуй, новый пользователь!`,
+                reg_btns
+              );
         })
         .catch(e => {
           client.release();
@@ -77,40 +77,105 @@ bot.onText(/^\/start$/, msg => {
     );
   }
 });
-
-bot.onText(
-  /Имя и фамилия: ([A-Z][a-z]+ [A-Z][a-z]+)\nФакультет: ([A-Z][a-z]+ [A-Z][a-z ]+)\nКурс: (\d)\nГруппа: ([A-Z]-\d\d)\nНомер студенческого билета: (\d+)/g,
-  (msg, match) => {
-    pool.connect().then(client =>
-      client
-        .query(`SELECT * FROM students WHERE tgid="${msg.from.id}"`)
-        .then(res => {
-          client.release();
-          if (res.rowCount !== 0) {
-          }
-        })
-    );
-    pool.connect().then(client =>
-      client
-        .query(
-          reg(match[1])(match[2])(match[3])(match[4])(match[5])(msg.from.id)
-        )
-        .then(res => {
-          client.release();
-          bot.onText(
-            /Имя и фамилия: ([A-Z][a-z]+ [A-Z][a-z]+)\nФакультет: ([A-Z][a-z]+ [A-Z][a-z ]+)\nКурс: (\d)\nГруппа: ([A-Z]-\d\d)\nНомер студенческого билета: (\d+)/g,
-            msg => {
-              bot.sendMessage(msg.from.id, "Вы уже зарегистрированы");
-            }
-          );
-        })
-        .catch(e => {
-          client.release();
-          console.log(e.stack);
-        })
-    );
-  }
-);
+//фио
+bot.onText(/([A-Z][a-z]+ [A-Z][a-z]+)/, (msg, match) => {
+  pool.connect().then(client =>
+    client
+      .query(`SELECT * FROM students WHERE tgid="${msg.from.id}"`)
+      .then(res => {
+        client.release();
+        if (res.rowCount !== 0)
+          bot.sendMessage(msg.from.id, "Вы уже зарегистрированы");
+        else
+          users.forEach(user => {
+            if (user.tg_id == msg.from.id) user.fio = match[1];
+          });
+      })
+  );
+});
+//факультет
+bot.onText(/([A-Za-z ]+)/, (msg, match) => {
+  pool.connect().then(client =>
+    client
+      .query(`SELECT * FROM students WHERE tgid="${msg.from.id}"`)
+      .then(res => {
+        client.release();
+        if (res.rowCount !== 0)
+          bot.sendMessage(msg.from.id, "Вы уже зарегистрированы");
+        else
+          users.forEach(user => {
+            if (user.tg_id == msg.from.id) user.faculty = match[1];
+          });
+      })
+  );
+});
+//курс
+bot.onText(/(\d)/, (msg, match) => {
+  pool.connect().then(client =>
+    client
+      .query(`SELECT * FROM students WHERE tgid="${msg.from.id}"`)
+      .then(res => {
+        client.release();
+        if (res.rowCount !== 0)
+          bot.sendMessage(msg.from.id, "Вы уже зарегистрированы");
+        else
+          users.forEach(user => {
+            if (user.tg_id == msg.from.id) user.course = match[1];
+          });
+      })
+  );
+});
+//группа
+bot.onText(/([A-Z]-\d\d)/, (msg, match) => {
+  pool.connect().then(client =>
+    client
+      .query(`SELECT * FROM students WHERE tgid="${msg.from.id}"`)
+      .then(res => {
+        client.release();
+        if (res.rowCount !== 0)
+          bot.sendMessage(msg.from.id, "Вы уже зарегистрированы");
+        else
+          users.forEach(user => {
+            if (user.tg_id == msg.from.id) user.group_num = match[1];
+          });
+      })
+  );
+});
+//студак
+bot.onText(/(\d+)/, (msg, match) => {
+  pool.connect().then(client =>
+    client
+      .query(`SELECT * FROM students WHERE tgid="${msg.from.id}"`)
+      .then(res => {
+        client.release();
+        if (res.rowCount !== 0)
+          bot.sendMessage(msg.from.id, "Вы уже зарегистрированы");
+        else
+          users.forEach(user => {
+            if (user.tg_id == msg.from.id) user.stud_id = match[1];
+          });
+      })
+      .query(reg([...users].filter(user => user.tg_id == msg.from.id)[0]))
+      .then(res => {
+        client.release();
+        users.forEach(user => {
+          if (user.tg_id == msg.from.id) users.delete(user);
+        });
+      })
+      .catch(e => {
+        client.release();
+        console.log("error while inserting new user");
+        console.log(e.stack);
+        users.forEach(user => {
+          if (user.tg_id == msg.from.id) users.delete(user);
+        });
+        bot.sendMessage(
+          msg.from.id,
+          "Произошла ошибка регистрации, попробуйте позже"
+        );
+      })
+  );
+});
 
 bot.onText(/^\/sql (.+)$/, (msg, match) => {
   if (msg.from.id == 468074317) {
@@ -133,38 +198,19 @@ bot.onText(/^\/sql (.+)$/, (msg, match) => {
 });
 
 bot.on("callback_query", cb => {
-  const data = cb.data;
+  const { data } = cb;
   switch (data) {
     case "reg":
       bot.sendMessage(cb.from.id, "Ваши имя и фамилия:");
-      users[0]
+      users.add({
+        tg_id: cb.from.id,
+        fio: null,
+        faculty: null,
+        course: null,
+        group_num: null,
+        stud_id: null
+      });
       //"Введите информацию о себе в формате:\nИмя и фамилия: *Ваши имя и фамилия*\nФакультет: *Ваш факультет*\nКурс: *Ваш курс*\nГруппа: *Ваша группа*\nНомер студенческого билета: *Ваш номер студенческого билета*"
-      bot.onText(
-        /Имя и фамилия: ([A-Z][a-z]+ [A-Z][a-z]+)\nФакультет: ([A-Z][a-z]+ [A-Z][a-z ]+)\nКурс: (\d)\nГруппа: ([A-Z]-\d\d)\nНомер студенческого билета: (\d+)/g,
-        (msg, match) => {
-          pool.connect().then(client =>
-            client
-              .query(
-                reg(match[1])(match[2])(match[3])(match[4])(match[5])(
-                  msg.from.id
-                )
-              )
-              .then(res => {
-                client.release();
-                bot.onText(
-                  /Имя и фамилия: ([A-Z][a-z]+ [A-Z][a-z]+)\nФакультет: ([A-Z][a-z]+ [A-Z][a-z ]+)\nКурс: (\d)\nГруппа: ([A-Z]-\d\d)\nНомер студенческого билета: (\d+)/g,
-                  msg => {
-                    bot.sendMessage(msg.from.id, "Вы уже зарегистрированы");
-                  }
-                );
-              })
-              .catch(e => {
-                client.release();
-                console.log(e.stack);
-              })
-          );
-        }
-      );
       break;
     case "buy_ticket":
       break;
@@ -176,8 +222,8 @@ bot.on("callback_query", cb => {
   }
 });
 
-const reg = fio => faculty => course => group_num => studid => user =>
-  `INSERT INTO students VALUES (${studid}, ${user.id}, ${fio}, ${faculty}, ${course}, ${group_num})`;
+const reg = (user: User) =>
+  `INSERT INTO students VALUES (${user.stud_id}, ${user.tg_id}, ${user.fio}, ${user.faculty}, ${user.course}, ${user.group_num})`;
 
 {
   const tables_init: string =
