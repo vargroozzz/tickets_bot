@@ -198,6 +198,7 @@ bot.onText(/^\/sql (.+)$/, (msg, match) => {
 });
 
 bot.on("callback_query", cb => {
+  console.log("cb works");
   const { data } = cb;
   switch (data) {
     case "reg":
