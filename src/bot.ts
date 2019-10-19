@@ -60,8 +60,6 @@ const bot = new TelegramBot(TOKEN, options);
 
 const pool = new Pool(db);
 
-bot.setWebHook(`${HOST_URL}/bot${TOKEN}`);
-
 bot.start(msg => {
   if (msg.from.id == msg.chat.id) {
     pool.connect().then(client =>
@@ -97,10 +95,7 @@ bot.hears(/([A-Z][a-z]+ [A-Z][a-z]+)/, (msg, match) => {
         client.release();
         if (res.rowCount !== 0)
           bot.sendMessage(msg.from.id, "Вы уже зарегистрированы");
-        else
-          users.forEach(user => {
-            if (user.tg_id == msg.from.id) user.fio = match[1];
-          });
+        else setField(msg.from.id, "fio", match[1]);
       })
   );
 });
@@ -113,10 +108,7 @@ bot.hears(/([A-Za-z ]+)/, (msg, match) => {
         client.release();
         if (res.rowCount !== 0)
           bot.sendMessage(msg.from.id, "Вы уже зарегистрированы");
-        else
-          users.forEach(user => {
-            if (user.tg_id == msg.from.id) user.faculty = match[1];
-          });
+        else setField(msg.from.id, "faculty", match[1]);
       })
   );
 });
@@ -129,10 +121,7 @@ bot.hears(/(\d)/, (msg, match) => {
         client.release();
         if (res.rowCount !== 0)
           bot.sendMessage(msg.from.id, "Вы уже зарегистрированы");
-        else
-          users.forEach(user => {
-            if (user.tg_id == msg.from.id) user.course = match[1];
-          });
+        else setField(msg.from.id, "course", match[1]);
       })
   );
 });
@@ -145,10 +134,7 @@ bot.hears(/([A-Z]-\d\d)/, (msg, match) => {
         client.release();
         if (res.rowCount !== 0)
           bot.sendMessage(msg.from.id, "Вы уже зарегистрированы");
-        else
-          users.forEach(user => {
-            if (user.tg_id == msg.from.id) user.group_num = match[1];
-          });
+        else setField(msg.from.id, "group_num", match[1]);
       })
   );
 });
@@ -161,10 +147,7 @@ bot.hears(/(\d+)/, (msg, match) => {
         client.release();
         if (res.rowCount !== 0)
           bot.sendMessage(msg.from.id, "Вы уже зарегистрированы");
-        else
-          users.forEach(user => {
-            if (user.tg_id == msg.from.id) user.stud_id = match[1];
-          });
+        else setField(msg.from.id, "stud_id", match[1]);
       })
       .query(reg([...users].filter(user => user.tg_id == msg.from.id)[0]))
       .then(res => {
@@ -231,6 +214,13 @@ bot.on("callback_query", cb => {
     default:
       console.log(data);
       break;
+  }
+});
+
+bot.launch({
+  webhook: {
+    domain: `${HOST_URL}/bot${TOKEN}`,
+    port: PORT
   }
 });
 
