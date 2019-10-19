@@ -5,8 +5,7 @@
     "moduleResolution": "node",
     "removeComments": true,
     "outDir": "app",
-    "sourceMap": false,
-    "watch": true
+    "sourceMap": false
   },
   "declaration": true,
   "include": ["src/bot.ts"],
