@@ -24,12 +24,6 @@ interface DB_User {
 
 const users: Set<DB_User> = new Set();
 
-const options = {
-  webHook: {
-    port: PORT
-  }
-};
-
 const db = {
   connectionString: process.env.DATABASE_URL,
   ssl: true
@@ -56,7 +50,7 @@ const reg_btns: reply_btns = {
   }
 };
 
-const bot = new TelegramBot(TOKEN, options);
+const bot = new TelegramBot(TOKEN);
 
 const pool = new Pool(db);
 
