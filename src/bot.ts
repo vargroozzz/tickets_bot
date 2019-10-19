@@ -1,12 +1,15 @@
+/// <reference path="../node_modules/telegram-typings/index.d.ts" />
 process.env["NTBA_FIX_319"] = "1";
 const TelegramBot = require("telegraf");
+const Extra = require("telegraf/extra");
+const Markup = require("telegraf/markup");
 import {
   User,
   Chat,
   Voice,
   Message,
   ReplyKeyboardMarkup,
-  InlineKeyboardMarkup
+  InlineKeyboardButton
 } from "telegram-typings";
 const Pool = require("pg").Pool;
 const TOKEN: string = process.env.TELEGRAM_BOT_TOKEN_TICKETS;
@@ -29,46 +32,35 @@ const db = {
   ssl: true
 };
 
-interface reply_btns {
-  reply_markup: InlineKeyboardMarkup;
-}
+const reg_btns: InlineKeyboardButton[][] = [
+  [{ text: "Зарегистрироваться", callback_data: "reg" }]
+];
 
-const start_btns: reply_btns = {
-  reply_markup: {
-    inline_keyboard: [
-      [
-        { text: "Заказать проездной", callback_data: "buy_ticket" },
-        { text: "Изменить свои данные", callback_data: "change_data" }
-      ]
-    ]
-  }
-};
-
-const reg_btns: reply_btns = {
-  reply_markup: {
-    inline_keyboard: [[{ text: "Зарегистрироваться", callback_data: "reg" }]]
-  }
-};
+const start_btns: InlineKeyboardButton[][] = [
+  [
+    { text: "Заказать проездной", callback_data: "buy_ticket" },
+    { text: "Изменить свои данные", callback_data: "change_data" }
+  ]
+];
 
 const bot = new TelegramBot(TOKEN);
 
 const pool = new Pool(db);
 
 bot.start(msg => {
-  if (msg.from.id == msg.chat.id) {
+  if (msg.message.from.id == msg.message.chat.id) {
     pool.connect().then(client =>
       client
-        .query(`SELECT * FROM students WHERE tgid='${msg.from.id}'`)
+        .query(`SELECT * FROM students WHERE tgid='${msg.message.from.id}'`)
         .then(res => {
           client.release();
           res.rows != 0
-            ? bot.sendMessage(
-                msg.from.id,
+            ? bot.reply(
                 `Здравствуй, ${res.rows[0].name}`,
-                start_btns
+                Markup.keyboard(start_btns)
               )
             : bot.sendMessage(
-                msg.from.id,
+                msg.message.from.id,
                 `Здравствуй, новый пользователь!`,
                 reg_btns
               );
@@ -226,7 +218,7 @@ bot.on("callback_query", cb => {
 
 bot.launch({
   webhook: {
-    domain: `${HOST_URL}/bot${TOKEN}`,
+    domain: HOST_URL,
     port: PORT
   }
 });

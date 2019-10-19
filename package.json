@@ -5,8 +5,9 @@
   "main": "app/bot.js",
   "scripts": {
     "start": "node app/bot.js",
-    "dev": "npm run build && npm run start",
-    "build": "tsc",
+    "dev": "npm run build-ts && npm run start",
+    "build-ts": "tsc",
+    "watch-ts": "tsc -w",
     "git": "git add . && git commit && git push origin master"
   },
   "engines": {
@@ -27,7 +28,7 @@
     "pg": "^7.12.1",
     "telegraf": "^3.33.0",
     "telegram-typings": "^4.0.0-beta",
-    "typescript": "^3.5.3",
+    "typescript": "^3.6.4",
     "utf-8-validate": "^5.0.2",
     "ws": "^7.1.1"
   },
