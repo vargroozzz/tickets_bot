@@ -6,9 +6,16 @@
   "scripts": {
     "start": "node app/bot.js",
     "dev": "npm run build-ts && npm run start",
+    "watch-node": "nodemon app/bot.js",
+    "watch": "concurrently -k -p \"[{name}]\" -n \"TypeScript,Node\" -c \"cyan.bold,green.bold\"  \"npm run watch-ts\" \"npm run watch-node\"",
+    "build": "npm run build-ts && npm run tslint",
     "build-ts": "tsc",
     "watch-ts": "tsc -w",
-    "git": "git add . && git commit && git push origin master"
+    "tslint": "tslint -c tslint.json -p tsconfig.json",
+    "git": "git add . && git commit && git push origin master",
+    "debug": "npm run build && npm run watch-debug",
+    "serve-debug": "nodemon --inspect app/bot.js",
+    "watch-debug": "concurrently -k -p \"[{name}]\" -n \"TypeScript,Node\" -c \"cyan.bold,green.bold\" \"npm run watch-ts\" \"npm run serve-debug\""
   },
   "engines": {
     "node": "12.3.1"
@@ -21,20 +28,26 @@
   "author": "vargroozzz",
   "license": "MIT",
   "dependencies": {
-    "@types/node": "^12.7.12",
     "body-parser": "^1.19.0",
     "bufferutil": "^4.0.1",
     "express": "^4.17.1",
+    "lodash": "^4.17.15",
     "pg": "^7.12.1",
     "telegraf": "^3.33.0",
     "telegram-typings": "^4.0.0-beta",
-    "typescript": "^3.6.4",
     "utf-8-validate": "^5.0.2",
     "ws": "^7.1.1"
   },
   "devDependencies": {
     "@babel/cli": "^7.4.4",
     "@babel/core": "^7.4.5",
-    "tslint": "^5.18.0"
+    "@types/lodash": "^4.14.144",
+    "@types/node": "^12.11.1",
+    "@types/pg": "^7.11.2",
+    "concurrently": "^5.0.0",
+    "nodemon": "^1.19.4",
+    "ts-node": "^8.4.1",
+    "tslint": "^5.20.0",
+    "typescript": "^3.6.4"
   }
 }
