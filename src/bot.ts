@@ -1,8 +1,9 @@
 process.env["NTBA_FIX_319"] = "1";
-import Telegraf, { Button, Buttons } from "telegraf";
+import Telegraf, { Button, Buttons, ContextMessageUpdate } from "telegraf";
 const Extra = require("telegraf/extra");
 const Markup = require("telegraf/markup");
-import { ContextMessageUpdate } from "telegraf";
+import Stage from "telegraf/stage";
+import session from "telegraf/session";
 import * as _ from "lodash";
 import { Pool } from "pg";
 const TOKEN: string = process.env.TELEGRAM_BOT_TOKEN_TICKETS;
