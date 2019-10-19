@@ -80,6 +80,19 @@ bot.start(msg => {
     );
   }
 });
+
+bot.hears("Зарегистрироваться", msg => {
+  bot.sendMessage(msg.from.id, "Ваши имя и фамилия:");
+  users.add({
+    tg_id: msg.from.id,
+    fio: null,
+    faculty: null,
+    course: null,
+    group_num: null,
+    stud_id: null
+  });
+});
+
 //фио
 bot.hears(/([A-Z][a-z]+ [A-Z][a-z]+)/, (msg, match) => {
   pool.connect().then(client =>
@@ -190,15 +203,15 @@ bot.on("callback_query", cb => {
   const { data } = cb;
   switch (data) {
     case "reg":
-      bot.sendMessage(cb.from.id, "Ваши имя и фамилия:");
-      users.add({
-        tg_id: cb.from.id,
-        fio: null,
-        faculty: null,
-        course: null,
-        group_num: null,
-        stud_id: null
-      });
+      // bot.sendMessage(cb.from.id, "Ваши имя и фамилия:");
+      // users.add({
+      //   tg_id: cb.from.id,
+      //   fio: null,
+      //   faculty: null,
+      //   course: null,
+      //   group_num: null,
+      //   stud_id: null
+      // });
       //"Введите информацию о себе в формате:\nИмя и фамилия: *Ваши имя и фамилия*\nФакультет: *Ваш факультет*\nКурс: *Ваш курс*\nГруппа: *Ваша группа*\nНомер студенческого билета: *Ваш номер студенческого билета*"
       break;
     case "buy_ticket":

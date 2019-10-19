@@ -6,7 +6,8 @@
   "scripts": {
     "start": "node app/bot.js",
     "dev": "npm run build && npm run start",
-    "build": "tsc"
+    "build": "tsc",
+    "git": "git add . && git commit && git push origin master"
   },
   "engines": {
     "node": "12.3.1"
