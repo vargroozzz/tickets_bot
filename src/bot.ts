@@ -60,7 +60,7 @@ const bot = new TelegramBot(TOKEN, options);
 
 const pool = new Pool(db);
 
-// bot.setWebHook(`${HOST_URL}/bot${TOKEN}`);
+bot.setWebHook(`${HOST_URL}/bot${TOKEN}`);
 
 bot.start(msg => {
   if (msg.from.id == msg.chat.id) {
