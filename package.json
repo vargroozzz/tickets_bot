@@ -23,8 +23,9 @@
     "body-parser": "^1.19.0",
     "bufferutil": "^4.0.1",
     "express": "^4.17.1",
-    "node-telegram-bot-api": "^0.30.0",
     "pg": "^7.12.1",
+    "telegraf": "^3.33.0",
+    "telegram-typings": "^4.0.0-beta",
     "typescript": "^3.5.3",
     "utf-8-validate": "^5.0.2",
     "ws": "^7.1.1"

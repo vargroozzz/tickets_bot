@@ -1,12 +1,19 @@
 process.env["NTBA_FIX_319"] = "1";
-const TelegramBot = require("node-telegram-bot-api");
+const TelegramBot = require("telegraf");
+import {
+  User,
+  Chat,
+  Voice,
+  Message,
+  ReplyKeyboardMarkup,
+  InlineKeyboardMarkup
+} from "telegram-typings";
 const Pool = require("pg").Pool;
-
 const TOKEN: string = process.env.TELEGRAM_BOT_TOKEN_TICKETS;
 const PORT = process.env.PORT || 443;
 const HOST_URL: string = "https://knu-ticket-bot.herokuapp.com";
 
-interface User {
+interface DB_User {
   tg_id: number | null;
   fio: string | null;
   faculty: string | null;
@@ -15,7 +22,7 @@ interface User {
   stud_id: number | null;
 }
 
-const users: Set<User> = new Set();
+const users: Set<DB_User> = new Set();
 
 const options = {
   webHook: {
@@ -28,7 +35,11 @@ const db = {
   ssl: true
 };
 
-const start_btns = {
+interface reply_btns {
+  reply_markup: InlineKeyboardMarkup;
+}
+
+const start_btns: reply_btns = {
   reply_markup: {
     inline_keyboard: [
       [
@@ -39,7 +50,7 @@ const start_btns = {
   }
 };
 
-const reg_btns = {
+const reg_btns: reply_btns = {
   reply_markup: {
     inline_keyboard: [[{ text: "Зарегистрироваться", callback_data: "reg" }]]
   }
@@ -49,9 +60,9 @@ const bot = new TelegramBot(TOKEN, options);
 
 const pool = new Pool(db);
 
-bot.setWebHook(`${HOST_URL}/bot${TOKEN}`);
+// bot.setWebHook(`${HOST_URL}/bot${TOKEN}`);
 
-bot.onText(/^\/start$/, msg => {
+bot.start(msg => {
   if (msg.from.id == msg.chat.id) {
     pool.connect().then(client =>
       client
@@ -78,7 +89,7 @@ bot.onText(/^\/start$/, msg => {
   }
 });
 //фио
-bot.onText(/([A-Z][a-z]+ [A-Z][a-z]+)/, (msg, match) => {
+bot.hears(/([A-Z][a-z]+ [A-Z][a-z]+)/, (msg, match) => {
   pool.connect().then(client =>
     client
       .query(`SELECT * FROM students WHERE tgid="${msg.from.id}"`)
@@ -94,7 +105,7 @@ bot.onText(/([A-Z][a-z]+ [A-Z][a-z]+)/, (msg, match) => {
   );
 });
 //факультет
-bot.onText(/([A-Za-z ]+)/, (msg, match) => {
+bot.hears(/([A-Za-z ]+)/, (msg, match) => {
   pool.connect().then(client =>
     client
       .query(`SELECT * FROM students WHERE tgid="${msg.from.id}"`)
@@ -110,7 +121,7 @@ bot.onText(/([A-Za-z ]+)/, (msg, match) => {
   );
 });
 //курс
-bot.onText(/(\d)/, (msg, match) => {
+bot.hears(/(\d)/, (msg, match) => {
   pool.connect().then(client =>
     client
       .query(`SELECT * FROM students WHERE tgid="${msg.from.id}"`)
@@ -126,7 +137,7 @@ bot.onText(/(\d)/, (msg, match) => {
   );
 });
 //группа
-bot.onText(/([A-Z]-\d\d)/, (msg, match) => {
+bot.hears(/([A-Z]-\d\d)/, (msg, match) => {
   pool.connect().then(client =>
     client
       .query(`SELECT * FROM students WHERE tgid="${msg.from.id}"`)
@@ -142,7 +153,7 @@ bot.onText(/([A-Z]-\d\d)/, (msg, match) => {
   );
 });
 //студак
-bot.onText(/(\d+)/, (msg, match) => {
+bot.hears(/(\d+)/, (msg, match) => {
   pool.connect().then(client =>
     client
       .query(`SELECT * FROM students WHERE tgid="${msg.from.id}"`)
@@ -177,7 +188,7 @@ bot.onText(/(\d+)/, (msg, match) => {
   );
 });
 
-bot.onText(/^\/sql (.+)$/, (msg, match) => {
+bot.hears(/^\/sql (.+)$/, (msg, match) => {
   if (msg.from.id == 468074317) {
     pool.connect().then(client =>
       client
@@ -223,8 +234,14 @@ bot.on("callback_query", cb => {
   }
 });
 
-const reg = (user: User) =>
+const reg = (user: DB_User) =>
   `INSERT INTO students VALUES (${user.stud_id}, ${user.tg_id}, ${user.fio}, ${user.faculty}, ${user.course}, ${user.group_num})`;
+
+const setField = (from_id: number, field, val): void => {
+  users.forEach(user => {
+    if (user.tg_id == from_id) user[field] = val;
+  });
+};
 
 {
   const tables_init: string =
