@@ -1,27 +1,50 @@
 process.env["NTBA_FIX_319"] = "1";
-import Telegraf, { Button, Buttons, ContextMessageUpdate } from "telegraf";
-const Extra = require("telegraf/extra");
-const Markup = require("telegraf/markup");
+import Telegraf, {
+  Button,
+  Buttons,
+  ContextMessageUpdate as BadMessage
+} from "telegraf";
+import Extra from "telegraf/extra";
+import Markup from "telegraf/markup";
 import Stage from "telegraf/stage";
 import session from "telegraf/session";
+import Scene from "telegraf/scenes/base";
 import * as _ from "lodash";
 import { Pool } from "pg";
 const TOKEN: string = process.env.TELEGRAM_BOT_TOKEN_TICKETS;
 const PORT = parseInt(process.env.PORT) || 443;
 const HOST_URL: string = "https://knu-ticket-bot.herokuapp.com";
 
-interface DB_User {
-  tg_id: string | null;
-  fio: string | null;
-  faculty: string | null;
-  course: string | null;
-  group_num: string | null;
-  stud_id: string | null;
+interface DBUser {
+  tg_id: string | undefined;
+  fio: string | undefined;
+  faculty: string | undefined;
+  course: string | undefined;
+  group_num: string | undefined;
+  stud_id: string | undefined;
+}
+
+interface ContextMessageUpdate extends BadMessage {
+  scene: any;
 }
 
 type fields = "tg_id" | "fio" | "faculty" | "course" | "group_num" | "stud_id";
 
-const users: Set<DB_User> = new Set();
+const stage = new Stage();
+
+const getName = new Scene("getName");
+stage.register(getName);
+const getFac = new Scene("getFac");
+stage.register(getFac);
+const getGroup = new Scene("getGroup");
+stage.register(getGroup);
+const getStudId = new Scene("getStudId");
+stage.register(getStudId);
+
+const check = new Scene("check");
+stage.register(check);
+
+const users: Set<DBUser> = new Set();
 
 const db = {
   connectionString: process.env.DATABASE_URL,
@@ -36,24 +59,30 @@ const start_btns: Buttons[][] = [
 
 const bot = new Telegraf(TOKEN);
 
+bot.use(session());
+bot.use(stage.middleware());
+
 const pool = new Pool(db);
 
 bot.start((ctx: ContextMessageUpdate) => {
-  if (ctx.from.id == ctx.message.chat.id) {
+  if (ctx.from.id == ctx.chat.id) {
     pool.connect().then(client =>
       client
         .query(`SELECT * FROM students WHERE tgid='${ctx.from.id}'`)
         .then(res => {
           client.release();
-          res.rowCount != 0
-            ? ctx.reply(
-                `Здравствуй, ${res.rows[0].name}`,
-                Markup.keyboard(start_btns)
-              )
-            : ctx.reply(
-                `Здравствуй, новый пользователь!`,
-                Markup.keyboard(reg_btns)
-              );
+          if (res.rowCount != 0) {
+            ctx.reply(
+              `Здравствуй, ${res.rows[0].name}`,
+              Markup.keyboard(start_btns)
+            );
+          } else {
+            ctx.reply(
+              `Здравствуй, новый пользователь!
+              Для работы мне нужны некоторые твои данные.Сначала введи свои имя и фармилию:`
+            );
+            ctx.scene.enter("getName");
+          }
         })
         .catch(e => {
           client.release();
@@ -67,15 +96,15 @@ bot.hears("Зарегистрироваться", (ctx: ContextMessageUpdate) =>
   ctx.reply("Ваши имя и фамилия:");
   users.add({
     tg_id: String(ctx.from.id),
-    fio: null,
-    faculty: null,
-    course: null,
-    group_num: null,
-    stud_id: null
+    fio: undefined,
+    faculty: undefined,
+    course: undefined,
+    group_num: undefined,
+    stud_id: undefined
   });
 });
 
-//фио
+// фио
 bot.hears(/([A-Z][a-z]+ [A-Z][a-z]+)/, (ctx: ContextMessageUpdate) => {
   pool.connect().then(client =>
     client
@@ -87,7 +116,7 @@ bot.hears(/([A-Z][a-z]+ [A-Z][a-z]+)/, (ctx: ContextMessageUpdate) => {
       })
   );
 });
-//факультет
+// факультет
 bot.hears(/([A-Za-z ]+)/, (ctx: ContextMessageUpdate) => {
   pool.connect().then(client =>
     client
@@ -99,7 +128,7 @@ bot.hears(/([A-Za-z ]+)/, (ctx: ContextMessageUpdate) => {
       })
   );
 });
-//курс
+// курс
 bot.hears(/(\d)/, (ctx: ContextMessageUpdate) => {
   pool.connect().then(client =>
     client
@@ -111,7 +140,7 @@ bot.hears(/(\d)/, (ctx: ContextMessageUpdate) => {
       })
   );
 });
-//группа
+// группа
 bot.hears(/([A-Z]-\d\d)/, (ctx: ContextMessageUpdate) => {
   pool.connect().then(client =>
     client
@@ -123,7 +152,7 @@ bot.hears(/([A-Z]-\d\d)/, (ctx: ContextMessageUpdate) => {
       })
   );
 });
-//студак
+// студак
 bot.hears(/(\d+)/, (ctx: ContextMessageUpdate) => {
   pool.connect().then(client =>
     client
@@ -180,11 +209,11 @@ bot.hears(/^\/sql (.+)$/, (ctx: ContextMessageUpdate) => {
 //       // bot.sendMessage(cb.from.id, "Ваши имя и фамилия:");
 //       // users.add({
 //       //   tg_id: cb.from.id,
-//       //   fio: null,
-//       //   faculty: null,
-//       //   course: null,
-//       //   group_num: null,
-//       //   stud_id: null
+//       //   fio: undefined,
+//       //   faculty: undefined,
+//       //   course: undefined,
+//       //   group_num: undefined,
+//       //   stud_id: undefined
 //       // });
 //       //"Введите информацию о себе в формате:\nИмя и фамилия: *Ваши имя и фамилия*\nФакультет: *Ваш факультет*\nКурс: *Ваш курс*\nГруппа: *Ваша группа*\nНомер студенческого билета: *Ваш номер студенческого билета*"
 //       break;
@@ -205,11 +234,11 @@ bot.launch({
   }
 });
 
-const reg = (user: DB_User) =>
+const reg = (user: DBUser) =>
   `INSERT INTO students VALUES (${user.stud_id}, ${user.tg_id}, ${user.fio}, ${user.faculty}, ${user.course}, ${user.group_num})`;
 
 const setField = (from_id: number, field: fields, val: string): void => {
-  _.each([...users], (user: DB_User) => {
+  _.each([...users], (user: DBUser) => {
     if (parseInt(user.tg_id) == from_id) user[field] = val;
   });
   // users.forEach(user => {
