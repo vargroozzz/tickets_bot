@@ -10,7 +10,7 @@ import Stage from "telegraf/stage";
 import session from "telegraf/session";
 import Scene from "telegraf/scenes/base";
 import * as _ from "lodash";
-import { Pool } from "pg";
+import { Pool, Client } from "pg";
 const TOKEN: string = process.env.TELEGRAM_BOT_TOKEN_TICKETS;
 const PORT = parseInt(process.env.PORT) || 443;
 const HOST_URL: string = "https://knu-ticket-bot.herokuapp.com";
@@ -19,7 +19,6 @@ interface DBUser {
   tg_id: string | undefined;
   fio: string | undefined;
   faculty: string | undefined;
-  course: string | undefined;
   group_num: string | undefined;
   stud_id: string | undefined;
 }
@@ -28,7 +27,7 @@ interface ContextMessageUpdate extends BadMessage {
   scene: any;
 }
 
-type fields = "tg_id" | "fio" | "faculty" | "course" | "group_num" | "stud_id";
+type fields = "tg_id" | "fio" | "faculty" | "group_num" | "stud_id";
 
 const stage = new Stage();
 
@@ -40,9 +39,8 @@ const getGroup = new Scene("getGroup");
 stage.register(getGroup);
 const getStudId = new Scene("getStudId");
 stage.register(getStudId);
-
-const check = new Scene("check");
-stage.register(check);
+const menu = new Scene("menu");
+stage.register(menu);
 
 const users: Set<DBUser> = new Set();
 
@@ -50,8 +48,6 @@ const db = {
   connectionString: process.env.DATABASE_URL,
   ssl: true
 };
-
-const reg_btns: Buttons[][] = [[{ text: "Зарегистрироваться" }]];
 
 const start_btns: Buttons[][] = [
   [{ text: "Заказать проездной" }, { text: "Изменить свои данные" }]
@@ -76,12 +72,20 @@ bot.start((ctx: ContextMessageUpdate) => {
               `Здравствуй, ${res.rows[0].name}`,
               Markup.keyboard(start_btns)
             );
+            ctx.scene.enter("menu");
           } else {
             ctx.reply(
               `Здравствуй, новый пользователь!
               Для работы мне нужны некоторые твои данные.Сначала введи свои имя и фармилию:`
             );
             ctx.scene.enter("getName");
+            users.add({
+              tg_id: String(ctx.from.id),
+              fio: undefined,
+              faculty: undefined,
+              group_num: undefined,
+              stud_id: undefined
+            });
           }
         })
         .catch(e => {
@@ -92,90 +96,68 @@ bot.start((ctx: ContextMessageUpdate) => {
   }
 });
 
-bot.hears("Зарегистрироваться", (ctx: ContextMessageUpdate) => {
-  ctx.reply("Ваши имя и фамилия:");
-  users.add({
-    tg_id: String(ctx.from.id),
-    fio: undefined,
-    faculty: undefined,
-    course: undefined,
-    group_num: undefined,
-    stud_id: undefined
-  });
-});
+// getName.command("start", async (ctx: ContextMessageUpdate) => {
+//   ctx.reply("Начнем заново. Введите имя и фамилию");
+//   setField(ctx.from.id, "fio", undefined);
+//   await ctx.scene.leave("getEduc");
+//   ctx.scene.enter("getName");
+// });
 
 // фио
-bot.hears(/([A-Z][a-z]+ [A-Z][a-z]+)/, (ctx: ContextMessageUpdate) => {
-  pool.connect().then(client =>
-    client
-      .query(`SELECT * FROM students WHERE tgid="${ctx.from.id}"`)
-      .then(res => {
-        client.release();
-        if (res.rowCount !== 0) ctx.reply("Вы уже зарегистрированы");
-        else setField(ctx.from.id, "fio", ctx.match[1]);
-      })
-  );
+getName.hears(
+  /([А-Я][а-я]+ [А-Я][а-я]+)/,
+  async (ctx: ContextMessageUpdate) => {
+    setField(ctx.from.id, "fio", ctx.match[1]);
+    ctx.reply(
+      "Хорошо, а теперь официальное название факультета, на котором ты учишься:"
+    );
+    await ctx.scene.leave("getName");
+    ctx.scene.enter("getFac");
+  }
+);
+getName.on("text", async (ctx: ContextMessageUpdate) => {
+  ctx.reply("Введите свои имя и фамилию");
 });
 // факультет
-bot.hears(/([A-Za-z ]+)/, (ctx: ContextMessageUpdate) => {
-  pool.connect().then(client =>
-    client
-      .query(`SELECT * FROM students WHERE tgid="${ctx.from.id}"`)
-      .then(res => {
-        client.release();
-        if (res.rowCount !== 0) ctx.reply("Вы уже зарегистрированы");
-        else setField(ctx.from.id, "faculty", ctx.match[1]);
-      })
-  );
+getFac.hears(/([A-Za-z ]+)/, async (ctx: ContextMessageUpdate) => {
+  setField(ctx.from.id, "faculty", ctx.match[1]);
+  ctx.reply("Название группы:");
+  await ctx.scene.leave("getFac");
+  ctx.scene.enter("getGroup");
 });
-// курс
-bot.hears(/(\d)/, (ctx: ContextMessageUpdate) => {
-  pool.connect().then(client =>
-    client
-      .query(`SELECT * FROM students WHERE tgid="${ctx.from.id}"`)
-      .then(res => {
-        client.release();
-        if (res.rowCount !== 0) ctx.reply("Вы уже зарегистрированы");
-        else setField(ctx.from.id, "course", ctx.match[1]);
-      })
-  );
+getFac.on("text", async (ctx: ContextMessageUpdate) => {
+  ctx.reply("Введите название своего факультета");
 });
 // группа
-bot.hears(/([A-Z]-\d\d)/, (ctx: ContextMessageUpdate) => {
-  pool.connect().then(client =>
-    client
-      .query(`SELECT * FROM students WHERE tgid="${ctx.from.id}"`)
-      .then(res => {
-        client.release();
-        if (res.rowCount !== 0) ctx.reply("Вы уже зарегистрированы");
-        else setField(ctx.from.id, "group_num", ctx.match[1]);
-      })
+getGroup.hears(/([A-Z]-\d\d)/, async (ctx: ContextMessageUpdate) => {
+  setField(ctx.from.id, "group_num", ctx.match[1]);
+  ctx.reply(
+    "А теперь самое главное: номер твоего студенческого билета, чтобы убедиться что ты не фейк:"
   );
+  await ctx.scene.leave("getGroup");
+  ctx.scene.enter("getStudId");
 });
 // студак
-bot.hears(/(\d+)/, (ctx: ContextMessageUpdate) => {
+getStudId.hears(/(\d+)/, (ctx: ContextMessageUpdate) => {
+  const thisUser = [...users].filter(
+    user => parseInt(user.tg_id) == ctx.from.id
+  )[0];
   pool.connect().then(client =>
     client
-      .query(`SELECT * FROM students WHERE tgid="${ctx.from.id}"`)
+      .query(reg(thisUser))
       .then(res => {
         client.release();
-        if (res.rowCount !== 0) ctx.reply("Вы уже зарегистрированы");
-        else setField(ctx.from.id, "stud_id", ctx.match[1]);
+        users.delete(thisUser);
+        ctx.reply(
+          "Вы были успешно зарегистрированы!",
+          Extra.keyboard(start_btns)
+        );
       })
-      // .query(reg([...users].filter(user => user.tg_id == msg.from.id)[0]))
-      // .then(res => {
-      //   client.release();
-      //   users.forEach(user => {
-      //     if (user.tg_id == msg.from.id) users.delete(user);
-      //   });
-      // })
       .catch(e => {
         client.release();
         console.log("error while inserting new user");
         console.log(e.stack);
-        users.forEach(user => {
-          if (parseInt(user.tg_id) == ctx.from.id) users.delete(user);
-        });
+        users.delete(thisUser);
         ctx.reply("Произошла ошибка регистрации, попробуйте позже");
       })
   );
@@ -211,7 +193,6 @@ bot.hears(/^\/sql (.+)$/, (ctx: ContextMessageUpdate) => {
 //       //   tg_id: cb.from.id,
 //       //   fio: undefined,
 //       //   faculty: undefined,
-//       //   course: undefined,
 //       //   group_num: undefined,
 //       //   stud_id: undefined
 //       // });
@@ -235,7 +216,7 @@ bot.launch({
 });
 
 const reg = (user: DBUser) =>
-  `INSERT INTO students VALUES (${user.stud_id}, ${user.tg_id}, ${user.fio}, ${user.faculty}, ${user.course}, ${user.group_num})`;
+  `INSERT INTO students VALUES (${user.stud_id}, ${user.tg_id}, ${user.fio}, ${user.faculty}, ${user.group_num})`;
 
 const setField = (from_id: number, field: fields, val: string): void => {
   _.each([...users], (user: DBUser) => {
@@ -253,7 +234,6 @@ const setField = (from_id: number, field: fields, val: string): void => {
     "tgid INT UNIQUE," +
     "name_surname TEXT ," +
     "faculty TEXT ," +
-    "course TEXT ," +
     "group_num TEXT ," +
     "PRIMARY KEY ( studid ));" +
     "\n" +
@@ -261,7 +241,6 @@ const setField = (from_id: number, field: fields, val: string): void => {
     "studid INT UNIQUE," +
     "tgid INT UNIQUE," +
     "name_surname TEXT ," +
-    "course TEXT ," +
     "group_num TEXT ," +
     "PRIMARY KEY ( studid ));";
   pool.connect().then(client =>
