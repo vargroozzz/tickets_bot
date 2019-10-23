@@ -141,6 +141,7 @@ getStudId.hears(/(\d+)/, (ctx: ContextMessageUpdate) => {
   const thisUser = [...users].filter(
     user => parseInt(user.tg_id) == ctx.from.id
   )[0];
+  console.log(thisUser);
   pool.connect().then(client =>
     client
       .query(reg(thisUser))
