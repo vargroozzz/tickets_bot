@@ -1,6 +1,5 @@
 process.env["NTBA_FIX_319"] = "1";
 import Telegraf, {
-  Button,
   Buttons,
   ContextMessageUpdate as BadMessage
 } from "telegraf";
@@ -129,7 +128,7 @@ getFac.on("text", async (ctx: ContextMessageUpdate) => {
   ctx.reply("Введите название своего факультета");
 });
 // группа
-getGroup.hears(/([A-Z]-\d\d)/, async (ctx: ContextMessageUpdate) => {
+getGroup.hears(/([А-Я]-\d\d)/, async (ctx: ContextMessageUpdate) => {
   setField(ctx.from.id, "group_num", ctx.match[1]);
   ctx.reply(
     "А теперь самое главное: номер твоего студенческого билета, чтобы убедиться что ты не фейк:"
@@ -156,9 +155,9 @@ getStudId.hears(/(\d+)/, (ctx: ContextMessageUpdate) => {
       .catch(e => {
         client.release();
         console.log("error while inserting new user");
+        ctx.reply("Произошла ошибка регистрации, попробуйте позже");
         console.log(e.stack);
         users.delete(thisUser);
-        ctx.reply("Произошла ошибка регистрации, попробуйте позже");
       })
   );
 });
@@ -183,14 +182,14 @@ bot.hears(/^\/sql (.+)$/, (ctx: ContextMessageUpdate) => {
   }
 });
 
-// bot.on("callback_query", cb => {
+// bot.on("callback_query", ctx => {
 //   console.log("cb works");
-//   const { data } = cb;
+//   const { data } = ctx;
 //   switch (data) {
 //     case "reg":
-//       // bot.sendMessage(cb.from.id, "Ваши имя и фамилия:");
+//       // ctx.reply(ctx.from.id, "Ваши имя и фамилия:");
 //       // users.add({
-//       //   tg_id: cb.from.id,
+//       //   tg_id: ctx.from.id,
 //       //   fio: undefined,
 //       //   faculty: undefined,
 //       //   group_num: undefined,
@@ -216,7 +215,7 @@ bot.launch({
 });
 
 const reg = (user: DBUser) =>
-  `INSERT INTO students VALUES (${user.stud_id}, ${user.tg_id}, ${user.fio}, ${user.faculty}, ${user.group_num})`;
+  `INSERT INTO students VALUES ("${user.stud_id}", "${user.tg_id}", "${user.fio}", "${user.faculty}", "${user.group_num}")`;
 
 const setField = (from_id: number, field: fields, val: string): void => {
   _.each([...users], (user: DBUser) => {
