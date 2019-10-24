@@ -129,7 +129,7 @@ getName.on("text", async (ctx: ContextMessageUpdate) => {
 });
 // факультет
 getFac.command("start", begin("getFac"));
-getFac.hears(/([A-Za-z ]+)/g, async (ctx: ContextMessageUpdate) => {
+getFac.hears(/([А-Яа-я ]+)/g, async (ctx: ContextMessageUpdate) => {
   console.log(ctx.match[1]);
   console.log(ctx.match);
   setField(ctx.from.id, "faculty", ctx.match[1]);
