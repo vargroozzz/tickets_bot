@@ -80,7 +80,7 @@ bot.start(async (ctx: ContextMessageUpdate) => {
       .query(`SELECT * FROM students WHERE tgid='${ctx.from.id}'`)
       .then(res => {
         if (res.rowCount != 0) {
-          console.log(res.rows[0].name_surname.split(" ")[1]);
+          ctx.reply(`Здравствуй, ${res.rows[0].name_surname.split(" ")[1]}`);
           ctx.reply(
             `Здравствуй, ${res.rows[0].name_surname.split(" ")[1]}`,
             Markup.keyboard(start_btns)
@@ -89,8 +89,7 @@ bot.start(async (ctx: ContextMessageUpdate) => {
         } else {
           ctx.reply(
             `Здравствуй, новый пользователь!
-              Для работы мне нужны некоторые твои данные.Сначала введи свои имя и фармилию:`,
-            { reply_markup: { remove_keyboard: true } }
+              Для работы мне нужны некоторые твои данные.Сначала введи свои имя и фармилию:`
           );
           ctx.scene.enter("getName");
           users.add({
