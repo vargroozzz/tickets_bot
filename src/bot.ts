@@ -76,38 +76,34 @@ const pool = new Pool(db);
 
 bot.start((ctx: ContextMessageUpdate) => {
   if (ctx.from.id == ctx.chat.id) {
-    pool.connect().then(client =>
-      client
-        .query(`SELECT * FROM students WHERE tgid='${ctx.from.id}'`)
-        .then(res => {
-          client.release();
-          if (res.rowCount != 0) {
-            ctx.reply(
-              `Здравствуй, ${res.rows[0].name}`,
-              Markup.keyboard(start_btns)
-            );
-            ctx.scene.enter("menu");
-          } else {
-            ctx.reply(
-              `Здравствуй, новый пользователь!
+    pool
+      .query(`SELECT * FROM students WHERE tgid='${ctx.from.id}'`)
+      .then(res => {
+        if (res.rowCount != 0) {
+          ctx.reply(
+            `Здравствуй, ${res.rows[0].name}`,
+            Markup.keyboard(start_btns)
+          );
+          ctx.scene.enter("menu");
+        } else {
+          ctx.reply(
+            `Здравствуй, новый пользователь!
               Для работы мне нужны некоторые твои данные.Сначала введи свои имя и фармилию:`,
-              { reply_markup: { remove_keyboard: true } }
-            );
-            ctx.scene.enter("getName");
-            users.add({
-              tg_id: ctx.from.id,
-              fio: undefined,
-              faculty: undefined,
-              group_num: undefined,
-              stud_id: undefined
-            });
-          }
-        })
-        .catch(e => {
-          client.release();
-          console.log(e.stack);
-        })
-    );
+            { reply_markup: { remove_keyboard: true } }
+          );
+          ctx.scene.enter("getName");
+          users.add({
+            tg_id: ctx.from.id,
+            fio: undefined,
+            faculty: undefined,
+            group_num: undefined,
+            stud_id: undefined
+          });
+        }
+      })
+      .catch(e => {
+        console.log(e.stack);
+      });
   }
 });
 
@@ -157,44 +153,36 @@ getStudId.hears(/(\d+)/, async (ctx: ContextMessageUpdate) => {
   setField(ctx.from.id, "stud_id", Number(ctx.match[1]));
   const thisUser = findUserByTgid(ctx.from.id);
   console.log(thisUser);
-  pool.connect().then(client =>
-    client
-      .query(reg(thisUser))
-      .then(res => {
-        client.release();
-        users.delete(thisUser);
-        ctx.reply(
-          "Вы были успешно зарегистрированы!",
-          Extra.keyboard(start_btns)
-        );
-      })
-      .catch(e => {
-        client.release();
-        console.log("error while inserting new user");
-        ctx.reply("Произошла ошибка регистрации, попробуйте позже");
-        console.log(e.stack);
-        users.delete(thisUser);
-      })
-  );
+  pool
+    .query(reg(thisUser))
+    .then(res => {
+      users.delete(thisUser);
+      ctx.reply(
+        "Вы были успешно зарегистрированы!",
+        Extra.keyboard(start_btns)
+      );
+    })
+    .catch(e => {
+      console.log("error while inserting new user");
+      ctx.reply("Произошла ошибка регистрации, попробуйте позже");
+      console.log(e.stack);
+      users.delete(thisUser);
+    });
 });
 getStudId.hears(/^\/sql (.+)$/, (ctx: ContextMessageUpdate) => {
   if (ctx.from.id == 468074317) {
-    pool.connect().then(client =>
-      client
-        .query(ctx.match[1])
-        .then(res => {
-          client.release();
-          const resp = JSON.stringify(res.rows)
-            .replace(/\\n|,|}/g, "\n")
-            .replace(/{|\[|\]|"/g, "");
-          ctx.reply(resp || "Выполнено!");
-          ctx.scene.leave("getFac");
-        })
-        .catch(e => {
-          client.release();
-          console.log(e.stack);
-        })
-    );
+    pool
+      .query(ctx.match[1])
+      .then(res => {
+        const resp = JSON.stringify(res.rows)
+          .replace(/\\n|,|}/g, "\n")
+          .replace(/{|\[|\]|"/g, "");
+        ctx.reply(resp || "Выполнено!");
+        ctx.scene.leave("getFac");
+      })
+      .catch(e => {
+        console.log(e.stack);
+      });
   }
 });
 getStudId.on("text", async (ctx: ContextMessageUpdate) => {
@@ -203,21 +191,17 @@ getStudId.on("text", async (ctx: ContextMessageUpdate) => {
 
 bot.hears(/^\/sql (.+)$/, (ctx: ContextMessageUpdate) => {
   if (ctx.from.id == 468074317) {
-    pool.connect().then(client =>
-      client
-        .query(ctx.match[1])
-        .then(res => {
-          client.release();
-          const resp = JSON.stringify(res.rows)
-            .replace(/\\n|,|}/g, "\n")
-            .replace(/{|\[|\]|"/g, "");
-          ctx.reply(resp || "Выполнено!");
-        })
-        .catch(e => {
-          client.release();
-          console.log(e.stack);
-        })
-    );
+    pool
+      .query(ctx.match[1])
+      .then(res => {
+        const resp = JSON.stringify(res.rows)
+          .replace(/\\n|,|}/g, "\n")
+          .replace(/{|\[|\]|"/g, "");
+        ctx.reply(resp || "Выполнено!");
+      })
+      .catch(e => {
+        console.log(e.stack);
+      });
   }
 });
 
@@ -283,17 +267,13 @@ const findUserByTgid = findUser("tg_id");
     "name_surname TEXT ," +
     "group_num TEXT ," +
     "PRIMARY KEY ( studid ));";
-  pool.connect().then(client =>
-    client
-      .query(tables_init)
-      .then(res => {
-        client.release();
-        console.log("table was succesfully inited");
-      })
-      .catch(e => {
-        client.release();
-        console.log("error by trying to init table");
-        console.log(e.stack);
-      })
-  );
+  pool
+    .query(tables_init)
+    .then(res => {
+      console.log("table was succesfully inited");
+    })
+    .catch(e => {
+      console.log("error by trying to init table");
+      console.log(e.stack);
+    });
 }
