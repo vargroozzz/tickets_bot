@@ -153,7 +153,7 @@ getGroup.on("text", async (ctx: ContextMessageUpdate) => {
 });
 // студак
 getGroup.command("start", begin("getStudId"));
-getStudId.hears(/(\d+)/, (ctx: ContextMessageUpdate) => {
+getStudId.hears(/(\d+)/, async (ctx: ContextMessageUpdate) => {
   setField(ctx.from.id, "stud_id", Number(ctx.match[1]));
   const thisUser = findUserByTgid(ctx.from.id);
   console.log(thisUser);
@@ -254,7 +254,7 @@ bot.launch({
 });
 
 const reg = (user: DBUser) =>
-  `INSERT INTO students(studid,tgid,name_surname,faculty,group_num) VALUES ("${user.stud_id}", "${user.tg_id}", "${user.fio}", "${user.faculty}", "${user.group_num}")`;
+  `INSERT INTO students(studid,tgid,name_surname,faculty,group_num) VALUES (${user.stud_id}, ${user.tg_id}, "${user.fio}", "${user.faculty}", "${user.group_num}")`;
 
 const setField = (from_id: number, field: fields, val: string | number) => {
   const user = findUserByTgid(from_id);
