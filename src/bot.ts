@@ -130,6 +130,7 @@ getName.on("text", async (ctx: ContextMessageUpdate) => {
 // факультет
 getFac.command("start", begin("getFac"));
 getFac.hears(/([A-Za-z ]+)/, async (ctx: ContextMessageUpdate) => {
+  console.log(ctx.match[1]);
   setField(ctx.from.id, "faculty", ctx.match[1]);
   ctx.reply("Название группы:");
   await ctx.scene.leave("getFac");
@@ -151,8 +152,6 @@ getGroup.hears(/([А-Я]-\d\d)/, async (ctx: ContextMessageUpdate) => {
 // студак
 getGroup.command("start", begin("getStudId"));
 getStudId.hears(/(\d+)/, (ctx: ContextMessageUpdate) => {
-  console.log(ctx.match[1]);
-  console.log(typeof ctx.match[1]);
   setField(ctx.from.id, "stud_id", ctx.match[1]);
   const thisUser = findUserByTgid(ctx.from.id);
   console.log(thisUser);
