@@ -27,6 +27,21 @@ interface ContextMessageUpdate extends BadMessage {
 }
 
 type fields = "tg_id" | "fio" | "faculty" | "group_num" | "stud_id";
+type scenesNames = "getName" | "getFac" | "getGroup" | "getStudId" | "menu";
+
+const begin = (scene: scenesNames) => async (ctx: ContextMessageUpdate) => {
+  ctx.reply("Начнем заново. Введите имя и фамилию");
+  users.delete(findUserByTgid(ctx.from.id));
+  users.add({
+    tg_id: String(ctx.from.id),
+    fio: undefined,
+    faculty: undefined,
+    group_num: undefined,
+    stud_id: undefined
+  });
+  await ctx.scene.leave(scene);
+  ctx.scene.enter("getName");
+};
 
 const stage = new Stage();
 
@@ -95,14 +110,8 @@ bot.start((ctx: ContextMessageUpdate) => {
   }
 });
 
-getName.command("start", async (ctx: ContextMessageUpdate) => {
-  ctx.reply("Начнем заново. Введите имя и фамилию");
-  setField(ctx.from.id, "fio", undefined);
-  await ctx.scene.leave("getEduc");
-  ctx.scene.enter("getName");
-});
-
 // фио
+getName.command("start", begin("getName"));
 getName.hears(
   /([А-Я][а-я]+ [А-Я][а-я]+)/,
   async (ctx: ContextMessageUpdate) => {
@@ -118,6 +127,7 @@ getName.on("text", async (ctx: ContextMessageUpdate) => {
   ctx.reply("Введите свои имя и фамилию");
 });
 // факультет
+getFac.command("start", begin("getFac"));
 getFac.hears(/([A-Za-z ]+)/, async (ctx: ContextMessageUpdate) => {
   setField(ctx.from.id, "faculty", ctx.match[1]);
   ctx.reply("Название группы:");
@@ -128,6 +138,7 @@ getFac.on("text", async (ctx: ContextMessageUpdate) => {
   ctx.reply("Введите название своего факультета");
 });
 // группа
+getGroup.command("start", begin("getGroup"));
 getGroup.hears(/([А-Я]-\d\d)/, async (ctx: ContextMessageUpdate) => {
   setField(ctx.from.id, "group_num", ctx.match[1]);
   ctx.reply(
@@ -137,6 +148,7 @@ getGroup.hears(/([А-Я]-\d\d)/, async (ctx: ContextMessageUpdate) => {
   ctx.scene.enter("getStudId");
 });
 // студак
+getGroup.command("start", begin("getStudId"));
 getStudId.hears(/(\d+)/, (ctx: ContextMessageUpdate) => {
   const thisUser = [...users].filter(
     user => parseInt(user.tg_id) == ctx.from.id
@@ -219,10 +231,8 @@ const reg = (user: DBUser) =>
   `INSERT INTO students VALUES ("${user.stud_id}", "${user.tg_id}", "${user.fio}", "${user.faculty}", "${user.group_num}")`;
 
 const setField = (from_id: number, field: fields, val: string): void => {
-  findUserByTgid(from_id);
-  _.each([...users], (user: DBUser) => {
-    if (parseInt(user.tg_id) == from_id) user[field] = val;
-  });
+  const user = findUserByTgid(from_id);
+  user[field] = val;
 };
 
 const search = (set: Set<DBUser>) => (field: fields) => (
@@ -230,6 +240,7 @@ const search = (set: Set<DBUser>) => (field: fields) => (
 ) => [...set].filter(user => user[field] == val)[0];
 const findUser = search(users);
 const findUserByTgid = findUser("tg_id");
+
 {
   const tables_init: string =
     "CREATE TABLE IF NOT EXISTS students (" +
