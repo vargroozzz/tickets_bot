@@ -79,15 +79,13 @@ bot.start(async (ctx: ContextMessageUpdate) => {
     pool
       .query(`SELECT * FROM students WHERE tgid='${ctx.from.id}'`)
       .then(res => {
-        console.log(res.rows);
         if (res.rowCount != 0) {
           ctx.reply(
-            `Здравствуй, ${res.rows[0].name}`,
+            `Здравствуй, ${res.rows[0].name_surname.split(" ")[1]}`,
             Markup.keyboard(start_btns)
           );
           ctx.scene.enter("menu");
         } else {
-          console.log("else");
           ctx.reply(
             `Здравствуй, новый пользователь!
               Для работы мне нужны некоторые твои данные.Сначала введи свои имя и фармилию:`,
@@ -154,7 +152,6 @@ getGroup.command("start", begin("getStudId"));
 getStudId.hears(/(\d+)/, async (ctx: ContextMessageUpdate) => {
   setField(ctx.from.id, "stud_id", Number(ctx.match[1]));
   const thisUser = findUserByTgid(ctx.from.id);
-  console.log(thisUser);
   pool
     .query(reg(thisUser))
     .then(res => {
@@ -208,7 +205,6 @@ bot.hears(/^\/sql (.+)$/, (ctx: ContextMessageUpdate) => {
 });
 
 // bot.on("callback_query", ctx => {
-//   console.log("cb works");
 //   const { data } = ctx;
 //   switch (data) {
 //     case "reg":
