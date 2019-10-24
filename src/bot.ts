@@ -173,12 +173,12 @@ getStudId.hears(/^\/sql (.+)$/, (ctx: ContextMessageUpdate) => {
   if (ctx.from.id == 468074317) {
     pool
       .query(ctx.match[1])
-      .then(res => {
+      .then(async res => {
         const resp = JSON.stringify(res.rows)
           .replace(/\\n|,|}/g, "\n")
           .replace(/{|\[|\]|"/g, "");
         ctx.reply(resp || "Выполнено!");
-        ctx.scene.leave("getFac");
+        await ctx.scene.leave("getFac");
       })
       .catch(e => {
         console.log(e.stack);
