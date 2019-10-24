@@ -90,7 +90,8 @@ bot.start((ctx: ContextMessageUpdate) => {
           } else {
             ctx.reply(
               `Здравствуй, новый пользователь!
-              Для работы мне нужны некоторые твои данные.Сначала введи свои имя и фармилию:`
+              Для работы мне нужны некоторые твои данные.Сначала введи свои имя и фармилию:`,
+              { reply_markup: { remove_keyboard: true } }
             );
             ctx.scene.enter("getName");
             users.add({
