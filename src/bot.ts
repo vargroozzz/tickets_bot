@@ -254,7 +254,7 @@ bot.launch({
 });
 
 const reg = (user: DBUser) =>
-  `INSERT INTO students(studid,tgid,name_surname,faculty,group_num) VALUES (${user.stud_id}, ${user.tg_id}, "${user.fio}", "${user.faculty}", "${user.group_num}")`;
+  `INSERT INTO students(studid,tgid,name_surname,faculty,group_num) VALUES ('${user.stud_id}', '${user.tg_id}', '${user.fio}', '${user.faculty}', '${user.group_num}')`;
 
 const setField = (from_id: number, field: fields, val: string | number) => {
   const user = findUserByTgid(from_id);
