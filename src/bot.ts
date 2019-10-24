@@ -86,6 +86,7 @@ bot.start(async (ctx: ContextMessageUpdate) => {
           );
           ctx.scene.enter("menu");
         } else {
+          console.log("else");
           ctx.reply(
             `Здравствуй, новый пользователь!
               Для работы мне нужны некоторые твои данные.Сначала введи свои имя и фармилию:`,
