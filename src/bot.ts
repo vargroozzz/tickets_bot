@@ -80,6 +80,7 @@ bot.start(async (ctx: ContextMessageUpdate) => {
       .query(`SELECT * FROM students WHERE tgid='${ctx.from.id}'`)
       .then(res => {
         if (res.rowCount != 0) {
+          console.log(res.rows[0].name_surname.split(" ")[1]);
           ctx.reply(
             `Здравствуй, ${res.rows[0].name_surname.split(" ")[1]}`,
             Markup.keyboard(start_btns)
