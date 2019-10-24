@@ -151,6 +151,7 @@ getGroup.hears(/([А-Я]-\d\d)/, async (ctx: ContextMessageUpdate) => {
 // студак
 getGroup.command("start", begin("getStudId"));
 getStudId.hears(/(\d+)/, (ctx: ContextMessageUpdate) => {
+  console.log(ctx.match[1]);
   setField(ctx.from.id, "stud_id", ctx.match[1]);
   const thisUser = findUserByTgid(ctx.from.id);
   console.log(thisUser);
