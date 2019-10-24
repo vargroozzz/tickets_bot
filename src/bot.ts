@@ -129,8 +129,9 @@ getName.on("text", async (ctx: ContextMessageUpdate) => {
 });
 // факультет
 getFac.command("start", begin("getFac"));
-getFac.hears(/([A-Za-z ]+)/, async (ctx: ContextMessageUpdate) => {
+getFac.hears(/([A-Za-z ]+)/g, async (ctx: ContextMessageUpdate) => {
   console.log(ctx.match[1]);
+  console.log(ctx.match);
   setField(ctx.from.id, "faculty", ctx.match[1]);
   ctx.reply("Название группы:");
   await ctx.scene.leave("getFac");
@@ -148,6 +149,9 @@ getGroup.hears(/([А-Я]-\d\d)/, async (ctx: ContextMessageUpdate) => {
   );
   await ctx.scene.leave("getGroup");
   ctx.scene.enter("getStudId");
+});
+getGroup.on("text", async (ctx: ContextMessageUpdate) => {
+  ctx.reply("Введите название своей группы");
 });
 // студак
 getGroup.command("start", begin("getStudId"));
@@ -194,6 +198,9 @@ getStudId.hears(/^\/sql (.+)$/, (ctx: ContextMessageUpdate) => {
         })
     );
   }
+});
+getStudId.on("text", async (ctx: ContextMessageUpdate) => {
+  ctx.reply("Введите номер своего студенческого билета");
 });
 
 bot.hears(/^\/sql (.+)$/, (ctx: ContextMessageUpdate) => {
