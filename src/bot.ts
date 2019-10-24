@@ -257,7 +257,7 @@ const setField = (from_id: number, field: fields, val: string): void => {
 
 const search = (set: Set<DBUser>) => (field: fields) => (
   val: string | number
-) => [...set].filter(user => user[field] == val)[0];
+): DBUser => [...set].filter(user => user[field] == val)[0];
 const findUser = search(users);
 const findUserByTgid = findUser("tg_id");
 
