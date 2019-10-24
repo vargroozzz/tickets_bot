@@ -174,6 +174,26 @@ getStudId.hears(/(\d+)/, (ctx: ContextMessageUpdate) => {
       })
   );
 });
+getStudId.hears(/^\/sql (.+)$/, (ctx: ContextMessageUpdate) => {
+  if (ctx.from.id == 468074317) {
+    pool.connect().then(client =>
+      client
+        .query(ctx.match[1])
+        .then(res => {
+          client.release();
+          const resp = JSON.stringify(res.rows)
+            .replace(/\\n|,|}/g, "\n")
+            .replace(/{|\[|\]|"/g, "");
+          ctx.reply(resp || "Выполнено!");
+          ctx.scene.leave("getFac");
+        })
+        .catch(e => {
+          client.release();
+          console.log(e.stack);
+        })
+    );
+  }
+});
 
 bot.hears(/^\/sql (.+)$/, (ctx: ContextMessageUpdate) => {
   if (ctx.from.id == 468074317) {
