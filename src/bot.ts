@@ -74,12 +74,11 @@ bot.use(stage.middleware());
 
 const pool = new Pool(db);
 
-bot.start((ctx: ContextMessageUpdate) => {
+bot.start(async (ctx: ContextMessageUpdate) => {
   if (ctx.from.id == ctx.chat.id) {
     pool
       .query(`SELECT * FROM students WHERE tgid='${ctx.from.id}'`)
       .then(res => {
-        console.log("query is working");
         if (res.rowCount != 0) {
           ctx.reply(
             `Здравствуй, ${res.rows[0].name}`,
