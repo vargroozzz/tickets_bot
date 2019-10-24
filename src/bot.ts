@@ -15,11 +15,11 @@ const PORT = parseInt(process.env.PORT) || 443;
 const HOST_URL: string = "https://knu-ticket-bot.herokuapp.com";
 
 interface DBUser {
-  tg_id: string | undefined;
-  fio: string | undefined;
-  faculty: string | undefined;
-  group_num: string | undefined;
-  stud_id: string | undefined;
+  tg_id: string | number | undefined;
+  fio: string | number | undefined;
+  faculty: string | number | undefined;
+  group_num: string | number | undefined;
+  stud_id: string | number | undefined;
 }
 
 interface ContextMessageUpdate extends BadMessage {
@@ -33,7 +33,7 @@ const begin = (scene: scenesNames) => async (ctx: ContextMessageUpdate) => {
   ctx.reply("Начнем заново. Введите имя и фамилию");
   users.delete(findUserByTgid(ctx.from.id));
   users.add({
-    tg_id: String(ctx.from.id),
+    tg_id: ctx.from.id,
     fio: undefined,
     faculty: undefined,
     group_num: undefined,
@@ -95,7 +95,7 @@ bot.start((ctx: ContextMessageUpdate) => {
             );
             ctx.scene.enter("getName");
             users.add({
-              tg_id: String(ctx.from.id),
+              tg_id: ctx.from.id,
               fio: undefined,
               faculty: undefined,
               group_num: undefined,
@@ -130,8 +130,6 @@ getName.on("text", async (ctx: ContextMessageUpdate) => {
 // факультет
 getFac.command("start", begin("getFac"));
 getFac.hears(/([А-Яа-я ]+)/g, async (ctx: ContextMessageUpdate) => {
-  console.log(ctx.match[1]);
-  console.log(ctx.match);
   setField(ctx.from.id, "faculty", ctx.match[1]);
   ctx.reply("Название группы:");
   await ctx.scene.leave("getFac");
@@ -156,7 +154,7 @@ getGroup.on("text", async (ctx: ContextMessageUpdate) => {
 // студак
 getGroup.command("start", begin("getStudId"));
 getStudId.hears(/(\d+)/, (ctx: ContextMessageUpdate) => {
-  setField(ctx.from.id, "stud_id", ctx.match[1]);
+  setField(ctx.from.id, "stud_id", Number(ctx.match[1]));
   const thisUser = findUserByTgid(ctx.from.id);
   console.log(thisUser);
   pool.connect().then(client =>
@@ -258,7 +256,7 @@ bot.launch({
 const reg = (user: DBUser) =>
   `INSERT INTO students(studid,tgid,name_surname,faculty,group_num) VALUES ("${user.stud_id}", "${user.tg_id}", "${user.fio}", "${user.faculty}", "${user.group_num}")`;
 
-const setField = (from_id: number, field: fields, val: string): void => {
+const setField = (from_id: number, field: fields, val: string | number) => {
   const user = findUserByTgid(from_id);
   user[field] = val;
 };
