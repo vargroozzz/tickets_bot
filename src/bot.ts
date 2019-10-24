@@ -76,10 +76,10 @@ const pool = new Pool(db);
 
 bot.start((ctx: ContextMessageUpdate) => {
   if (ctx.from.id == ctx.chat.id) {
-    console.log("u`re in no scene");
     pool
       .query(`SELECT * FROM students WHERE tgid='${ctx.from.id}'`)
       .then(res => {
+        console.log("query is working");
         if (res.rowCount != 0) {
           ctx.reply(
             `Здравствуй, ${res.rows[0].name}`,
