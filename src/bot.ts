@@ -95,12 +95,12 @@ bot.start((ctx: ContextMessageUpdate) => {
   }
 });
 
-// getName.command("start", async (ctx: ContextMessageUpdate) => {
-//   ctx.reply("Начнем заново. Введите имя и фамилию");
-//   setField(ctx.from.id, "fio", undefined);
-//   await ctx.scene.leave("getEduc");
-//   ctx.scene.enter("getName");
-// });
+getName.command("start", async (ctx: ContextMessageUpdate) => {
+  ctx.reply("Начнем заново. Введите имя и фамилию");
+  setField(ctx.from.id, "fio", undefined);
+  await ctx.scene.leave("getEduc");
+  ctx.scene.enter("getName");
+});
 
 // фио
 getName.hears(
@@ -219,14 +219,17 @@ const reg = (user: DBUser) =>
   `INSERT INTO students VALUES ("${user.stud_id}", "${user.tg_id}", "${user.fio}", "${user.faculty}", "${user.group_num}")`;
 
 const setField = (from_id: number, field: fields, val: string): void => {
+  findUserByTgid(from_id);
   _.each([...users], (user: DBUser) => {
     if (parseInt(user.tg_id) == from_id) user[field] = val;
   });
-  // users.forEach(user => {
-  //   if (parseInt(user.tg_id) == from_id) user[field] = val;
-  // });
 };
 
+const search = (set: Set<DBUser>) => (field: fields) => (
+  val: string | number
+) => [...set].filter(user => user[field] == val)[0];
+const findUser = search(users);
+const findUserByTgid = findUser("tg_id");
 {
   const tables_init: string =
     "CREATE TABLE IF NOT EXISTS students (" +
