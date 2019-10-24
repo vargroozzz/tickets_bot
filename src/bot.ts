@@ -79,8 +79,8 @@ bot.start(async (ctx: ContextMessageUpdate) => {
     pool
       .query(`SELECT * FROM students WHERE tgid='${ctx.from.id}'`)
       .then(res => {
+        console.log(res.rows);
         if (res.rowCount != 0) {
-          console.log("if");
           ctx.reply(
             `Здравствуй, ${res.rows[0].name}`,
             Markup.keyboard(start_btns)
