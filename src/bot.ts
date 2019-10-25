@@ -1,33 +1,25 @@
 process.env["NTBA_FIX_319"] = "1";
 import Telegraf, {
   Buttons,
-  ContextMessageUpdate as BadMessage
+  Markup,
+  CallbackButton,
+  ContextMessageUpdate as BadMessage,
+  PayButton
 } from "telegraf";
 import Extra from "telegraf/extra";
-import { Markup } from "telegraf";
 import Stage from "telegraf/stage";
 import session from "telegraf/session";
 import Scene from "telegraf/scenes/base";
 import * as _ from "lodash";
-import { Pool, Client } from "pg";
-const TOKEN: string = process.env.TELEGRAM_BOT_TOKEN_TICKETS;
+import { Pool } from "pg";
+const TOKEN = process.env.TELEGRAM_BOT_TOKEN_TICKETS;
+const PAYMENT_TOKEN = process.env.PAYMENT_TOKEN;
 const PORT = parseInt(process.env.PORT) || 443;
-const HOST_URL: string = "https://knu-ticket-bot.herokuapp.com";
-
-interface DBUser {
-  tg_id: string | number | undefined;
-  fio: string | number | undefined;
-  faculty: string | number | undefined;
-  group_num: string | number | undefined;
-  stud_id: string | number | undefined;
-}
+const HOST_URL = "https://knu-ticket-bot.herokuapp.com";
 
 interface ContextMessageUpdate extends BadMessage {
   scene: any;
 }
-
-type fields = "tg_id" | "fio" | "faculty" | "group_num" | "stud_id";
-type scenesNames = "getName" | "getFac" | "getGroup" | "getStudId" | "menu";
 
 const begin = (scene: scenesNames) => async (ctx: ContextMessageUpdate) => {
   ctx.reply("Начнем заново. Введите имя и фамилию");
@@ -41,6 +33,13 @@ const begin = (scene: scenesNames) => async (ctx: ContextMessageUpdate) => {
   });
   await ctx.scene.leave(scene);
   ctx.scene.enter("getName");
+};
+
+const chooseCardType = (type: CallbackButton[][]) => async (
+  ctx: ContextMessageUpdate
+) => {
+  await ctx.answerCbQuery();
+  await ctx.editMessageReplyMarkup(Markup.inlineKeyboard(type));
 };
 
 const stage = new Stage();
@@ -64,7 +63,62 @@ const db = {
 };
 
 const start_btns: string[][] = [["Заказать проездной", "Изменить свои данные"]];
-
+const ticket_types: CallbackButton[][] = [
+  [
+    Markup.callbackButton("Метро", "metro"),
+    Markup.callbackButton("Метро-Автобус", "metro_bus")
+  ],
+  [
+    Markup.callbackButton("Метро-Тролейбус", "metro_troleybus"),
+    Markup.callbackButton("Метро-Трамвай", "metro_trum")
+  ]
+];
+const metro: CallbackButton[][] = [
+  [Markup.callbackButton("46 поїздок, 145 грн.", "metro__46")],
+  [Markup.callbackButton("62 поїздки, 195 грн.", "metro__62")],
+  [
+    Markup.callbackButton(
+      "Необмежена кількість поїздок, 305 грн.",
+      "metro__inf"
+    )
+  ]
+];
+const metro_bus: CallbackButton[][] = [
+  [Markup.callbackButton("46 поїздок, 285 грн.", "metro_bus__46")],
+  [Markup.callbackButton("62 поїздки, 335 грн.", "metro_bus__62")],
+  [
+    Markup.callbackButton(
+      "Необмежена кількість поїздок, 430 грн.",
+      "metro_bus__inf"
+    )
+  ]
+];
+const metro_troleybus: CallbackButton[][] = [
+  [Markup.callbackButton("46 поїздок, 285 грн.", "metro_troleybus__46")],
+  [Markup.callbackButton("62 поїздки, 335 грн.", "metro_troleybus__62")],
+  [
+    Markup.callbackButton(
+      "Необмежена кількість поїздок, 430 грн.",
+      "metro_troleybus__inf"
+    )
+  ]
+];
+const metro_trum: CallbackButton[][] = [
+  [Markup.callbackButton("46 поїздок, 285 грн.", "metro_trum__46")],
+  [Markup.callbackButton("62 поїздки, 335 грн.", "metro_trum__62")],
+  [
+    Markup.callbackButton(
+      "Необмежена кількість поїздок, 430 грн.",
+      "metro_trum__inf"
+    )
+  ]
+];
+const metro__46: Product = {
+  name: "Метро 46 поездок",
+  price: 145,
+  description: "Проездной в метро на 46 поездок",
+  photoUrl: "no photo"
+};
 const bot = new Telegraf(TOKEN);
 
 bot.use(session());
@@ -78,7 +132,6 @@ bot.start(async (ctx: ContextMessageUpdate) => {
       .query(`SELECT * FROM students WHERE tgid='${ctx.from.id}'`)
       .then(res => {
         if (res.rowCount != 0) {
-          ctx.reply(`Здравствуй, ${res.rows[0].name_surname.split(" ")[1]}`);
           ctx.reply(
             `Здравствуй, ${res.rows[0].name_surname.split(" ")[1]}`,
             Markup.keyboard(start_btns)
@@ -158,7 +211,9 @@ getStudId.hears(/(\d+)/, async (ctx: ContextMessageUpdate) => {
       users.delete(thisUser);
       ctx.reply(
         "Вы были успешно зарегистрированы!",
-        Extra.keyboard(start_btns)
+        Markup.keyboard(start_btns)
+          .resize()
+          .extra()
       );
     })
     .catch(e => {
@@ -168,22 +223,7 @@ getStudId.hears(/(\d+)/, async (ctx: ContextMessageUpdate) => {
       users.delete(thisUser);
     });
 });
-getStudId.hears(/^\/sql (.+)$/, (ctx: ContextMessageUpdate) => {
-  if (ctx.from.id == 468074317) {
-    pool
-      .query(ctx.match[1])
-      .then(async res => {
-        const resp = JSON.stringify(res.rows)
-          .replace(/\\n|,|}/g, "\n")
-          .replace(/{|\[|\]|"/g, "");
-        ctx.reply(resp || "Выполнено!");
-        await ctx.scene.leave("getFac");
-      })
-      .catch(e => {
-        console.log(e.stack);
-      });
-  }
-});
+
 getStudId.on("text", async (ctx: ContextMessageUpdate) => {
   ctx.reply("Введите номер своего студенческого билета");
 });
@@ -204,29 +244,22 @@ bot.hears(/^\/sql (.+)$/, (ctx: ContextMessageUpdate) => {
   }
 });
 
-// bot.on("callback_query", ctx => {
-//   const { data } = ctx;
-//   switch (data) {
-//     case "reg":
-//       // ctx.reply(ctx.from.id, "Ваши имя и фамилия:");
-//       // users.add({
-//       //   tg_id: ctx.from.id,
-//       //   fio: undefined,
-//       //   faculty: undefined,
-//       //   group_num: undefined,
-//       //   stud_id: undefined
-//       // });
-//       //"Введите информацию о себе в формате:\nИмя и фамилия: *Ваши имя и фамилия*\nФакультет: *Ваш факультет*\nКурс: *Ваш курс*\nГруппа: *Ваша группа*\nНомер студенческого билета: *Ваш номер студенческого билета*"
-//       break;
-//     case "buy_ticket":
-//       break;
-//     case "change_data":
-//       break;
-//     default:
-//       console.log(data);
-//       break;
-//   }
-// });
+menu.hears("Заказать проездной", (ctx: ContextMessageUpdate) => {
+  ctx.reply(
+    "Какой вид вам нужен?",
+    Markup.inlineKeyboard(ticket_types)
+      .resize()
+      .extra()
+  );
+});
+
+menu.action("metro", chooseCardType(metro));
+menu.action("metro__46", async (ctx: ContextMessageUpdate) =>
+  ctx.replyWithInvoice(createInvoice(metro__46))
+);
+menu.action("metro_bus", chooseCardType(metro_bus));
+menu.action("metro_troleybus", chooseCardType(metro_troleybus));
+menu.action("metro_trum", chooseCardType(metro_trum));
 
 bot.launch({
   webhook: {
@@ -248,6 +281,17 @@ const search = (set: Set<DBUser>) => (field: fields) => (
 ): DBUser => [...set].filter(user => user[field] == val)[0];
 const findUser = search(users);
 const findUserByTgid = findUser("tg_id");
+
+const createInvoice = (product: Product) => ({
+  provider_token: PAYMENT_TOKEN,
+  start_parameter: "foo",
+  title: product.name,
+  description: product.description,
+  currency: "UAH",
+  photo_url: product.photoUrl,
+  prices: [{ label: product.name, amount: Math.trunc(product.price * 100) }],
+  payload: "BLACK FRIDAY"
+});
 
 {
   const tables_init: string =
