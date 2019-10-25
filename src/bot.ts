@@ -4,7 +4,7 @@ import Telegraf, {
   ContextMessageUpdate as BadMessage
 } from "telegraf";
 import Extra from "telegraf/extra";
-import Markup from "telegraf/markup";
+import { Markup } from "telegraf";
 import Stage from "telegraf/stage";
 import session from "telegraf/session";
 import Scene from "telegraf/scenes/base";
@@ -63,9 +63,7 @@ const db = {
   ssl: true
 };
 
-const start_btns: Buttons[][] = [
-  [{ text: "Заказать проездной" }, { text: "Изменить свои данные" }]
-];
+const start_btns: string[][] = ["Заказать проездной", "Изменить свои данные"];
 
 const bot = new Telegraf(TOKEN);
 
@@ -84,6 +82,8 @@ bot.start(async (ctx: ContextMessageUpdate) => {
           ctx.reply(
             `Здравствуй, ${res.rows[0].name_surname.split(" ")[1]}`,
             Markup.keyboard(start_btns)
+              .resize()
+              .extra()
           );
           ctx.scene.enter("menu");
         } else {
