@@ -63,7 +63,7 @@ const db = {
   ssl: true
 };
 
-const start_btns: string[][] = ["Заказать проездной", "Изменить свои данные"];
+const start_btns: string[][] = [["Заказать проездной", "Изменить свои данные"]];
 
 const bot = new Telegraf(TOKEN);
 
