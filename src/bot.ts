@@ -119,6 +119,75 @@ const metro__46: Product = {
   description: "Проездной в метро на 46 поездок",
   photoUrl: "no photo"
 };
+const metro__62: Product = {
+  name: "Метро 62 поездки",
+  price: 145,
+  description: "Проездной в метро на 62 поездки",
+  photoUrl: "no photo"
+};
+const metro__inf: Product = {
+  name: "Метро неограниченое количество поездок",
+  price: 145,
+  description: "Проездной в метро на неограниченое количество поездок",
+  photoUrl: "no photo"
+};
+const metro_bus__46: Product = {
+  name: "Метро + автобус 46 поездок",
+  price: 145,
+  description: "Проездной в метро и автобусе на 46 поездок",
+  photoUrl: "no photo"
+};
+const metro_bus__62: Product = {
+  name: "Метро + автобус 62 поездки",
+  price: 145,
+  description: "Проездной в метро и автобусе на 62 поездки",
+  photoUrl: "no photo"
+};
+const metro_bus__inf: Product = {
+  name: "Метро + автобус неограниченое количество поездок",
+  price: 145,
+  description:
+    "Проездной в метро и автобусе на неограниченое количество поездок",
+  photoUrl: "no photo"
+};
+const metro_troleybus__46: Product = {
+  name: "Метро + тролейбус 46 поездок",
+  price: 145,
+  description: "Проездной в метро и тролейбусе на 46 поездок",
+  photoUrl: "no photo"
+};
+const metro_troleybus__62: Product = {
+  name: "Метро + тролейбус 62 поездки",
+  price: 145,
+  description: "Проездной в метро и тролейбусе на 62 поездки",
+  photoUrl: "no photo"
+};
+const metro_troleybus__inf: Product = {
+  name: "Метро + тролейбус неограниченое количество поездок",
+  price: 145,
+  description:
+    "Проездной в метро и тролейбусе на неограниченое количество поездок",
+  photoUrl: "no photo"
+};
+const metro_trum__46: Product = {
+  name: "Метро + трамвай 46 поездок",
+  price: 145,
+  description: "Проездной в метро и трамвае на 46 поездок",
+  photoUrl: "no photo"
+};
+const metro_trum__62: Product = {
+  name: "Метро + трамвай 62 поездки",
+  price: 145,
+  description: "Проездной в метро и трамвае на 62 поездки",
+  photoUrl: "no photo"
+};
+const metro_trum__inf: Product = {
+  name: "Метро + трамвай неограниченое количество поездок",
+  price: 145,
+  description:
+    "Проездной в метро и трамвае на неограниченое количество поездок",
+  photoUrl: "no photo"
+};
 const bot = new Telegraf(TOKEN);
 
 bot.use(session());
@@ -257,9 +326,42 @@ menu.action("metro", chooseCardType(metro));
 menu.action("metro__46", async (ctx: ContextMessageUpdate) =>
   ctx.replyWithInvoice(createInvoice(metro__46))
 );
+menu.action("metro__62", async (ctx: ContextMessageUpdate) =>
+  ctx.replyWithInvoice(createInvoice(metro__62))
+);
+menu.action("metro__inf", async (ctx: ContextMessageUpdate) =>
+  ctx.replyWithInvoice(createInvoice(metro__inf))
+);
 menu.action("metro_bus", chooseCardType(metro_bus));
+menu.action("metro_bus__46", async (ctx: ContextMessageUpdate) =>
+  ctx.replyWithInvoice(createInvoice(metro_bus__46))
+);
+menu.action("metro_bus__62", async (ctx: ContextMessageUpdate) =>
+  ctx.replyWithInvoice(createInvoice(metro_bus__62))
+);
+menu.action("metro_bus__inf", async (ctx: ContextMessageUpdate) =>
+  ctx.replyWithInvoice(createInvoice(metro_bus__inf))
+);
 menu.action("metro_troleybus", chooseCardType(metro_troleybus));
+menu.action("metro_troleybus__46", async (ctx: ContextMessageUpdate) =>
+  ctx.replyWithInvoice(createInvoice(metro_troleybus__46))
+);
+menu.action("metro_troleybus__62", async (ctx: ContextMessageUpdate) =>
+  ctx.replyWithInvoice(createInvoice(metro_troleybus__62))
+);
+menu.action("metro_troleybus__inf", async (ctx: ContextMessageUpdate) =>
+  ctx.replyWithInvoice(createInvoice(metro_troleybus__inf))
+);
 menu.action("metro_trum", chooseCardType(metro_trum));
+menu.action("metro_trum__46", async (ctx: ContextMessageUpdate) =>
+  ctx.replyWithInvoice(createInvoice(metro_trum__46))
+);
+menu.action("metro_trum__62", async (ctx: ContextMessageUpdate) =>
+  ctx.replyWithInvoice(createInvoice(metro_trum__62))
+);
+menu.action("metro_trum__inf", async (ctx: ContextMessageUpdate) =>
+  ctx.replyWithInvoice(createInvoice(metro_trum__inf))
+);
 
 bot.launch({
   webhook: {
