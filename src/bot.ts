@@ -62,7 +62,9 @@ const db = {
   ssl: true
 };
 
-const start_btns: string[][] = [["Заказать проездной", "Изменить свои данные"]];
+const start_btns: string[][] = [
+  ["Мой профиль", "Заказать проездной", "Изменить свои данные"]
+];
 const ticket_types: CallbackButton[][] = [
   [
     Markup.callbackButton("Метро", "metro"),
@@ -74,41 +76,41 @@ const ticket_types: CallbackButton[][] = [
   ]
 ];
 const metro: CallbackButton[][] = [
-  [Markup.callbackButton("46 поїздок, 145 грн.", "metro__46")],
-  [Markup.callbackButton("62 поїздки, 195 грн.", "metro__62")],
+  [Markup.callbackButton("46 поездок, 145 грн.", "metro__46")],
+  [Markup.callbackButton("62 поездки, 195 грн.", "metro__62")],
   [
     Markup.callbackButton(
-      "Необмежена кількість поїздок, 305 грн.",
+      "Неограниченное количество поездок, 305 грн.",
       "metro__inf"
     )
   ]
 ];
 const metro_bus: CallbackButton[][] = [
-  [Markup.callbackButton("46 поїздок, 285 грн.", "metro_bus__46")],
-  [Markup.callbackButton("62 поїздки, 335 грн.", "metro_bus__62")],
+  [Markup.callbackButton("46 поездок, 285 грн.", "metro_bus__46")],
+  [Markup.callbackButton("62 поездки, 335 грн.", "metro_bus__62")],
   [
     Markup.callbackButton(
-      "Необмежена кількість поїздок, 430 грн.",
+      "Неограниченное количество поездок, 430 грн.",
       "metro_bus__inf"
     )
   ]
 ];
 const metro_troleybus: CallbackButton[][] = [
-  [Markup.callbackButton("46 поїздок, 285 грн.", "metro_troleybus__46")],
-  [Markup.callbackButton("62 поїздки, 335 грн.", "metro_troleybus__62")],
+  [Markup.callbackButton("46 поездок, 285 грн.", "metro_troleybus__46")],
+  [Markup.callbackButton("62 поездки, 335 грн.", "metro_troleybus__62")],
   [
     Markup.callbackButton(
-      "Необмежена кількість поїздок, 430 грн.",
+      "Неограниченное количество поездок, 430 грн.",
       "metro_troleybus__inf"
     )
   ]
 ];
 const metro_trum: CallbackButton[][] = [
-  [Markup.callbackButton("46 поїздок, 285 грн.", "metro_trum__46")],
-  [Markup.callbackButton("62 поїздки, 335 грн.", "metro_trum__62")],
+  [Markup.callbackButton("46 поездок, 285 грн.", "metro_trum__46")],
+  [Markup.callbackButton("62 поездки, 335 грн.", "metro_trum__62")],
   [
     Markup.callbackButton(
-      "Необмежена кількість поїздок, 430 грн.",
+      "Неограниченное количество поездок, 430 грн.",
       "metro_trum__inf"
     )
   ]
@@ -313,12 +315,22 @@ bot.hears(/^\/sql (.+)$/, (ctx: ContextMessageUpdate) => {
   }
 });
 
+menu.hears("Мой профиль", async (ctx: ContextMessageUpdate) => {
+  ctx.reply(await getProfile(ctx.from.id));
+});
+
 menu.hears("Заказать проездной", (ctx: ContextMessageUpdate) => {
   ctx.reply(
     "Какой вид вам нужен?",
     Markup.inlineKeyboard(ticket_types)
       .resize()
       .extra()
+  );
+});
+
+menu.hears("Изменить свои данные", (ctx: ContextMessageUpdate) => {
+  ctx.reply(
+    "Пока что данные изменять нельзя, возможно что и потом будет запрещено это делать"
   );
 });
 
@@ -383,6 +395,17 @@ const search = (set: Set<DBUser>) => (field: fields) => (
 ): DBUser => [...set].filter(user => user[field] == val)[0];
 const findUser = search(users);
 const findUserByTgid = findUser("tg_id");
+
+const getProfile = (tg_id: number) =>
+  pool.query(`SELECT * FROM students WHERE tg_id=${tg_id}`).then(
+    res =>
+      `ФИО:${res.rows[0].name_surname}
+    Факультет:${res.rows[0].faculty}
+    Группа:${res.rows[0].group_num}
+    Номер студенческого билета:${res.rows[0].stud_id}
+    \n
+    Заказан проездной: Нет`
+  );
 
 const createInvoice = (product: Product) => ({
   provider_token: PAYMENT_TOKEN,
