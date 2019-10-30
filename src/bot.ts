@@ -400,11 +400,11 @@ const getProfile = (tg_id: number) =>
   pool.query(`SELECT * FROM students WHERE tgid=${tg_id}`).then(
     res =>
       `ФИО:${res.rows[0].name_surname}
-    Факультет:${res.rows[0].faculty}
-    Группа:${res.rows[0].group_num}
-    Номер студенческого билета:${res.rows[0].studid}
-    \n
-    Заказан проездной: Нет`
+Факультет:${res.rows[0].faculty}
+Группа:${res.rows[0].group_num}
+Номер студенческого билета:${res.rows[0].studid}
+\n
+Заказан проездной: Нет`
   );
 
 const createInvoice = (product: Product) => ({
