@@ -37,7 +37,7 @@
     "telegraf": "^3.33.0",
     "telegram-typings": "^4.0.0-beta",
     "utf-8-validate": "^5.0.2",
-    "ws": "^7.1.1"
+    "ws": "^7.4.6"
   },
   "devDependencies": {
     "@babel/cli": "^7.4.4",
